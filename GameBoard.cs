@@ -10,22 +10,32 @@ namespace piskworks
     
     public class GameBoard
     {
-        private SymbolKind[,,] field;
+        private SymbolKind[,,] board;
         private int N;
 
         public GameBoard(int dimension)
         {
             N = dimension;
-            field = new SymbolKind[N, N, N];
+            board = new SymbolKind[N, N, N];
         }
 
         public bool PlaceSybol(int x, int y, int z, SymbolKind symbol)
         {
-            if (field[x,y,z] != SymbolKind.Free) {
+            if (board[x,y,z] != SymbolKind.Free) {
                 return false;
             }
-            field[x, y, z] = symbol;
+            board[x, y, z] = symbol;
             return true;
+        }
+
+        public void DoMove(GameMove move)
+        {
+            PlaceSybol(move.X, move.Y, move.Z, move.Symbol);
+        }
+
+        public SymbolKind GetSymbol(int x, int y, int z)
+        {
+            return board[x, y, z];
         }
 
         public bool CheckForWin()
@@ -41,13 +51,13 @@ namespace piskworks
                     SymbolKind cur = SymbolKind.Invalid;
                     for (int y = 0; y < N; y++) {
                         if (cur == SymbolKind.Invalid) {
-                            if (field[x,y,z] == SymbolKind.Free) {
+                            if (board[x,y,z] == SymbolKind.Free) {
                                 break;
                             }
-                            cur = field[x, y, z];
+                            cur = board[x, y, z];
                         }
                         else {
-                            if (cur != field[x,y,z]) {
+                            if (cur != board[x,y,z]) {
                                 break;
                             }
                         }
@@ -65,13 +75,13 @@ namespace piskworks
                     SymbolKind cur = SymbolKind.Invalid;
                     for (int x = 0; x < N; x++) {
                         if (cur == SymbolKind.Invalid) {
-                            if (field[x,y,z] == SymbolKind.Free) {
+                            if (board[x,y,z] == SymbolKind.Free) {
                                 break;
                             }
-                            cur = field[x, y, z];
+                            cur = board[x, y, z];
                         }
                         else {
-                            if (cur != field[x,y,z]) {
+                            if (cur != board[x,y,z]) {
                                 break;
                             }
                         }
@@ -89,13 +99,13 @@ namespace piskworks
                     SymbolKind cur = SymbolKind.Invalid;
                     for (int z = 0; z < N; z++) {
                         if (cur == SymbolKind.Invalid) {
-                            if (field[x,y,z] == SymbolKind.Free) {
+                            if (board[x,y,z] == SymbolKind.Free) {
                                 break;
                             }
-                            cur = field[x, y, z];
+                            cur = board[x, y, z];
                         }
                         else {
-                            if (cur != field[x,y,z]) {
+                            if (cur != board[x,y,z]) {
                                 break;
                             }
                         }
@@ -104,6 +114,22 @@ namespace piskworks
                 }
             }
             return false;
+        }
+    }
+
+    public struct GameMove
+    {
+        public int X { get; }
+        public int Y { get; }
+        public int Z { get; }
+        public SymbolKind Symbol { get; }
+
+        public GameMove(int x, int y, int z, SymbolKind symbol)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+            Symbol = symbol;
         }
     }
 }
