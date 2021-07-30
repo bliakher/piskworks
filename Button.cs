@@ -59,7 +59,7 @@ namespace piskworks
             if (HasMouseOn()) {
                 highligted = true;
                 if (lastMouseState.LeftButton == ButtonState.Released && mouse.LeftButton == ButtonState.Pressed) {
-                    Game.PlaceSymbol(GameX, GameY, GameZ);
+                    //Game.PlaceSymbol(GameX, GameY, GameZ); // ToDo
                 }
             }
             else {

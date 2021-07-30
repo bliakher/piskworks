@@ -9,8 +9,8 @@ namespace piskworks
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        private GameBoard _gameBoard;
-        private SymbolKind _playerSymbol;
+        public Player Player;
+
 
         public Game()
         {
@@ -23,8 +23,6 @@ namespace piskworks
         {
             // TODO: Add your initialization logic here
             
-            _gameBoard = new GameBoard(3); // ToDo: get dimension from player
-            _playerSymbol = SymbolKind.Cross;
 
             base.Initialize();
         }
@@ -34,6 +32,11 @@ namespace piskworks
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
+        }
+
+        public void StartPlaying(HostingKind hostingKind)
+        {
+            
         }
 
         protected override void Update(GameTime gameTime)
@@ -54,10 +57,6 @@ namespace piskworks
 
             base.Draw(gameTime);
         }
-
-        public void PlaceSymbol(int x, int y, int z)
-        {
-            _gameBoard.PlaceSybol(x, y, z, _playerSymbol);
-        }
+        
     }
 }

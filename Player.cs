@@ -13,7 +13,8 @@ namespace piskworks
     
     public abstract class Player
     {
-        private GameBoard _board;
+        public GameBoard _board;
+        public SymbolKind _playerSymbol;
 
         public abstract void SendMeMessage(MessageObject msg);
         public abstract void SendMessageToServer(MessageObject msg);
@@ -31,6 +32,7 @@ namespace piskworks
         public HostPlayer(Server server)
         {
             _server = server;
+            _playerSymbol = SymbolKind.Cross;
         }
 
         public override void SendMeMessage(MessageObject msg)
@@ -48,6 +50,7 @@ namespace piskworks
     {
         public GuestPlayer()
         {
+            _playerSymbol = SymbolKind.Nought;
         }
 
         public override void SendMeMessage(MessageObject msg)
