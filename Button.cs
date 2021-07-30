@@ -73,4 +73,13 @@ namespace piskworks
             base.Draw(gameTime);
         }
     }
+
+    public class HostingButton : Button
+    {
+        public HostingKind Kind;
+        public HostingButton(Game game, int x, int y, Texture2D texture, HostingKind kind) : base(game, x, y, texture)
+        {
+            Kind = kind;
+        }
+    }
 }
