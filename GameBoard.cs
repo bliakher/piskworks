@@ -8,12 +8,12 @@ namespace piskworks
         Invalid
     }
     
-    public class Piskworks
+    public class GameBoard
     {
         private SymbolKind[,,] field;
         private int N;
 
-        public Piskworks(int dimension)
+        public GameBoard(int dimension)
         {
             N = dimension;
             field = new SymbolKind[N, N, N];

@@ -4,12 +4,15 @@ using Microsoft.Xna.Framework.Input;
 
 namespace piskworks
 {
-    public class Game1 : Game
+    public class Game : Microsoft.Xna.Framework.Game
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        public Game1()
+        private GameBoard _gameBoard;
+        private SymbolKind _playerSymbol;
+
+        public Game()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
@@ -19,6 +22,9 @@ namespace piskworks
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
+            
+            _gameBoard = new GameBoard(3); // ToDo: get dimension from player
+            _playerSymbol = SymbolKind.Cross;
 
             base.Initialize();
         }
@@ -47,6 +53,11 @@ namespace piskworks
             // TODO: Add your drawing code here
 
             base.Draw(gameTime);
+        }
+
+        public void PlaceSymbol(int x, int y, int z)
+        {
+            _gameBoard.PlaceSybol(x, y, z, _playerSymbol);
         }
     }
 }
