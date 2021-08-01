@@ -11,7 +11,7 @@ namespace piskworks
     public class GameBoard
     {
         private SymbolKind[,,] board;
-        private int N;
+        public int N;
 
         public GameBoard(int dimension)
         {

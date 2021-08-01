@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace piskworks
 {
     public class GraphicUtils
     {
-        public static (List<Vector3> vertices, List<int> indexes) MakeStraightLine(Vector3 p1, Vector3 p2, float thickness,
-            int startIdx = 0)
+        public static (List<VertexPositionColor> vertices, List<int> indexes) MakeStraightLine(Vector3 p1, Vector3 p2, 
+            float thickness, Color color, int startIdx = 0)
         {
-            var vertices = new List<Vector3>();
+            var vertices = new List<VertexPositionColor>();
             var indexes = new List<int>();
 
             Vector3 diffHor;
@@ -30,21 +31,22 @@ namespace piskworks
                 return (null, null); // not a horizontal or vertical line
             }
             // horizontal rectangle
-            var a = p1 + diffHor;
-            var b = p1 - diffHor;
-            var c = p2 + diffHor;
-            var d = p2 - diffHor;
+            var a = new VertexPositionColor(p1 + diffHor, color);
+            var b = new VertexPositionColor(p1 - diffHor, color);
+            var c = new VertexPositionColor(p2 + diffHor, color);
+            var d = new VertexPositionColor(p2 - diffHor, color);
             vertices.AddRange(new []{a, b, c, d});
             // triangles abc and bcd - indexes start from given start idx
             indexes.AddRange(new [] {startIdx, startIdx + 1, startIdx + 2, startIdx + 1, startIdx + 2, startIdx + 3});
             
             // vertical rectangle
-            a = p1 + diffVer;
-            b = p1 - diffVer;
-            c = p2 + diffVer;
-            d = p2 - diffVer;
+            a = new VertexPositionColor(p1 + diffVer, color);
+            b = new VertexPositionColor(p1 - diffVer, color);
+            c = new VertexPositionColor(p2 + diffVer,color);
+            d = new VertexPositionColor(p2 - diffVer, color);
             vertices.AddRange(new []{a, b, c, d});
-            indexes.AddRange(new [] {startIdx, startIdx + 1, startIdx + 2, startIdx + 1, startIdx + 2, startIdx + 3});
+            // plus 4 bc there already 4 vertexes added before
+            indexes.AddRange(new [] {startIdx + 4, startIdx + 5, startIdx + 6, startIdx + 5, startIdx + 6, startIdx + 7});
             return (vertices, indexes);
         }
 
