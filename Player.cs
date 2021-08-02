@@ -19,6 +19,8 @@ namespace piskworks
         public abstract void SendMeMessage(MessageObject msg);
         public abstract void SendMessageToServer(MessageObject msg);
 
+        public abstract void DoMove(GameMove move);
+
         public void ReceiveMessage(MessageObject msg)
         {
             
@@ -44,6 +46,11 @@ namespace piskworks
         {
             throw new System.NotImplementedException();
         }
+
+        public override void DoMove(GameMove move)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 
     public class GuestPlayer : Player
@@ -59,6 +66,11 @@ namespace piskworks
         }
 
         public override void SendMessageToServer(MessageObject msg)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override void DoMove(GameMove move)
         {
             throw new System.NotImplementedException();
         }
