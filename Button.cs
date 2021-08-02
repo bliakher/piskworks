@@ -8,22 +8,30 @@ namespace piskworks
     {
         public int X { get;  }
         public int Y { get; }
+        public int Width { get; }
+        public int Height { get; }
+        public string Label { get; }
+        public bool isHighlighted { get; set; }
         public Texture2D Texture { get; }
         public Game Game;
         
         
-        public Button(Game game, int x, int y, Texture2D texture) : base(game)
+        public Button(Game game, int x, int y, int width, int height, string label, Texture2D texture = null) : base(game)
         {
             X = x;
             Y = y;
+            Width = width;
+            Height = height;
             Texture = texture;
             Game = game;
+            Label = label;
+            isHighlighted = false;
         }
 
         public bool HasMouseOn()
         {
             var mouse = Mouse.GetState();
-            if (mouse.X > X && mouse.X < X + Texture.Width && mouse.Y > Y && mouse.Y < Y + Texture.Height) {
+            if (mouse.X > X && mouse.X < X + Width && mouse.Y > Y && mouse.Y < Y + Height) {
                 return true;
             }
             return false;
@@ -43,7 +51,7 @@ namespace piskworks
         private bool highligted;
         private MouseState lastMouseState;
         
-        public GameField(Game game, int x, int y, Texture2D texture, int gamePosX, int gamePosY, int gamePosZ) : base(game, x, y, texture)
+        public GameField(Game game, int x, int y, int width, int height, string label, int gamePosX, int gamePosY, int gamePosZ, Texture2D texture = null) : base(game, x, y, width, height, label, texture)
         {
             HighlightColor = yellow;
             highligted = false;
@@ -77,7 +85,7 @@ namespace piskworks
     public class HostingButton : Button
     {
         public HostingKind Kind;
-        public HostingButton(Game game, int x, int y, Texture2D texture, HostingKind kind) : base(game, x, y, texture)
+        public HostingButton(Game game, int x, int y, int width, int height, string label, HostingKind kind, Texture2D texture = null) : base(game, x, y, width, height, label, texture)
         {
             Kind = kind;
         }
