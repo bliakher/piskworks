@@ -5,8 +5,21 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace piskworks
 {
-    public class GraphicUtils
+    public static class GraphicUtils
     {
+        public static SpriteFont Font { get; set; }
+        public static void DrawString(this SpriteBatch spriteBatch, string s, Vector2 position, float scale, Color fontColor) {
+            spriteBatch.DrawString(Font, s, position, fontColor, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
+        }
+
+        public static void DrawStringCentered(this SpriteBatch spriteBatch, string s, Vector2 center, float scale, Color fontColor) {
+            float charW = Font.Glyphs[0].Width;
+            float strW = s.Length * charW;
+            float strH = charW;
+            
+            DrawString(spriteBatch, s, center - new Vector2(strW / 2, strH / 2) * scale, scale, fontColor);
+        }
+        
         public static (List<VertexPositionColor> vertices, List<int> indexes) MakeStraightLine(Vector3 p1, Vector3 p2, 
             float thickness, Color color, int startIdx = 0)
         {
