@@ -59,7 +59,7 @@ namespace piskworks
             var buttonWidth = viewPort.Width / widthPart;
             var buttonHeight = viewPort.Height / 20;
             var buttonOffset = viewPort.Height / 40;
-            var buttonOffsetTop = viewPort.Height / 3;
+            var buttonOffsetTop = 2 * viewPort.Height / 3;
             var buttonOffsetLeft = (widthPart - 1) / 2 * viewPort.Width / widthPart;
 
             _hostButton = new HostingButton(_game, buttonOffsetLeft, buttonOffsetTop, buttonWidth, buttonHeight, "Host", HostingKind.Host);
@@ -85,6 +85,11 @@ namespace piskworks
             var viewPort = _game.GraphicsDevice.Viewport;
 
             sb.Begin(samplerState: SamplerState.PointClamp);
+
+            var logoOffset = viewPort.Height / 7;
+            sb.DrawStringCentered("PISK", new Vector2(viewPort.Width / 2, viewPort.Height / 3), 8, PiskRed);
+            sb.DrawStringCentered("WORKS", new Vector2(viewPort.Width / 2, viewPort.Height / 3 + logoOffset), 6, PiskBlue);
+
 
             foreach (var button in _buttonList) {
                 var center = new Vector2(button.X + button.Width / 2, button.Y + button.Height / 2);
