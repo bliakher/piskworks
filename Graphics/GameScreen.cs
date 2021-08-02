@@ -14,6 +14,7 @@ namespace piskworks
         public readonly Color PiskBlue;
         public readonly Color PiskDarkBlue;
         public readonly Color PiskBeige;
+        public readonly Color PiskHighlight;
 
         protected GameScreen(Game game)
         {
@@ -25,6 +26,7 @@ namespace piskworks
             PiskDarkBlue = new Color(4, 68, 103);
             PiskRed = new Color(167, 29, 38);
             PiskBeige = new Color(229, 224, 194);
+            PiskHighlight = new Color(238, 225, 144);
         }
 
         public abstract void Update(GameTime gameTime);
@@ -115,36 +117,102 @@ namespace piskworks
 
     public class WaitScreen : GameScreen
     {
+        private const string msg = "Waiting for the other player to connect..";
         public WaitScreen(Game game) : base(game)
         {
         }
 
         public override void Update(GameTime gameTime)
         {
-            throw new NotImplementedException();
         }
 
         public override void Draw(GameTime gameTime)
         {
-            throw new NotImplementedException();
+            _game.GraphicsDevice.Clear(PiskBeige);
+
+            var sb = _game.SpriteBatch;
+            var viewport = _game.GraphicsDevice.Viewport;
+            sb.Begin(samplerState: SamplerState.PointClamp);
+            sb.DrawStringCentered(msg, new Vector2(viewport.Width / 2, viewport.Height / 2), 2, PiskBlue);
+            sb.End();
         }
     }
 
     public class PlayScreen : GameScreen
     {
-        public PlayScreen(Game game) : base(game)
+        private Vizualizer3D _vizualizer;
+        private GameBoard _board;
+        private GameField[,,] _fieldList;
+
+        private bool _initialized;
+        
+        public PlayScreen(Game game, GameBoard board) : base(game)
         {
-            
+            _board = board;
+            _vizualizer = new Vizualizer3D(_board, _game);
+            _fieldList = new GameField[board.N, board.N, board.N];
+            _initialized = false;
         }
 
         public override void Update(GameTime gameTime)
         {
-            
+            foreach (var field in _fieldList) {
+                field.isHighlighted = field.HasMouseOn();
+            }
         }
 
         public override void Draw(GameTime gameTime)
         {
-            _game.GraphicsDevice.Clear(PiskBlue);
+            var viewport = _game.GraphicsDevice.Viewport;
+            var sb = _game.SpriteBatch;
+            
+            _game.GraphicsDevice.Clear(PiskBeige);
+
+            var layerSpacing = viewport.Width / 20;
+            var layersTopLeftOffset = viewport.Height / 10;
+            var layerSide = (viewport.Width - (_board.N - 1) * layerSpacing - layersTopLeftOffset * 2) / _board.N;
+            var fieldSize = layerSide / _board.N;
+
+            SpriteBank bank = _game.SpriteBank;
+            
+            sb.Begin(samplerState: SamplerState.PointClamp);
+
+            for (int z = 0; z < _board.N; z++) {
+
+                var leftCornerX = layersTopLeftOffset + z * layerSide + z * layerSpacing;
+                var leftCornerY = layersTopLeftOffset;
+                for (int x = 0; x < _board.N; x++) {
+                    var xScreen = leftCornerX + x * fieldSize;
+                    for (int y = 0; y < _board.N; y++) {
+                        var yScreen = leftCornerY + y * fieldSize;
+
+                        if (!_initialized) {
+                            var field = new GameField(_game, xScreen, yScreen, fieldSize, fieldSize, 
+                                null, x, y, z, bank.GameField.Texture);
+                            _fieldList[x, y, z] = field;
+                        }
+
+                        var fieldHighlight = _fieldList[x, y, z].isHighlighted ? PiskHighlight : Color.White;
+
+                        var fieldRect = new Rectangle(xScreen, yScreen, fieldSize,
+                            fieldSize);
+                        
+                        sb.Draw(bank.GameField.Texture, fieldRect, bank.GameField.SourceRect, fieldHighlight );
+                        
+                        var symbol = _board.GetSymbol(x, y, z);
+                        if (symbol == SymbolKind.Cross) {
+                            sb.Draw(bank.Cross.Texture, fieldRect, bank.Cross.SourceRect, Color.White);
+                        }
+                        else if (symbol == SymbolKind.Nought) {
+                            sb.Draw(bank.Nought.Texture, fieldRect, bank.Nought.SourceRect, Color.White);
+                        }
+                    }
+                }
+            }
+            
+            sb.End();
+
+            _initialized = true;
         }
     }
 }

@@ -8,10 +8,11 @@ namespace piskworks
     {
         private GraphicsDeviceManager _graphics;
         public SpriteBatch SpriteBatch;
+        public SpriteBank SpriteBank;
 
         private HostingKind _hostingKind;
         public Player Player;
-        public Viewer Viewer;
+        public Vizualizer3D Vizualizer3D;
 
         private GameScreen _currentScreen;
         
@@ -21,12 +22,14 @@ namespace piskworks
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-            Viewer = new Viewer(new GameBoard(4), this);
+            Vizualizer3D = new Vizualizer3D(new GameBoard(4), this);
         }
 
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
+
+            Window.AllowUserResizing = true;
 
             _currentScreen = new IntroScreen(this);
             
@@ -38,6 +41,8 @@ namespace piskworks
             SpriteBatch = new SpriteBatch(GraphicsDevice);
             Texture2D fontTexture = Content.Load<Texture2D>("spritefont");
             GraphicUtils.Font = FontLoader.CreateFont(fontTexture);
+            Texture2D sourceTexture = Content.Load<Texture2D>("piskworks");
+            SpriteBank = new SpriteBank(sourceTexture);
 
             // TODO: use this.Content to load your game content here
         }
@@ -61,7 +66,10 @@ namespace piskworks
         private void startGameGuest()
         {
             Player = new GuestPlayer();
-            _currentScreen = new WaitScreen(this);
+            //_currentScreen = new WaitScreen(this);
+            var board = new GameBoard(4);
+            board.FillForTesting();
+            _currentScreen = new PlayScreen(this, board);
         }
 
         public void TransitionFromIntro(HostingKind hostingKind)
