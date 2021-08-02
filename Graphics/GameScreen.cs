@@ -32,6 +32,18 @@ namespace piskworks
         public abstract void Update(GameTime gameTime);
         public abstract void Draw(GameTime gameTime);
 
+        public void DrawButtons(IEnumerable<Button> buttons, SpriteBatch sb)
+        {
+            foreach (var button in buttons) {
+                var center = new Vector2(button.X + button.Width / 2, button.Y + button.Height / 2);
+                var buttonColor = button.isHighlighted ? PiskDarkBlue : PiskBlue;
+                
+                sb.Draw(WhitePixel, new Rectangle(button.X, button.Y, button.Width, button.Height), 
+                    WhitePixelSourceRect, buttonColor);
+                sb.DrawStringCentered(button.Label, center, 2, Color.White);
+            }
+        }
+
     }
     public class IntroScreen : GameScreen
     {
@@ -84,15 +96,7 @@ namespace piskworks
             sb.DrawStringCentered("PISK", new Vector2(viewPort.Width / 2, viewPort.Height / 3), 8, PiskRed);
             sb.DrawStringCentered("WORKS", new Vector2(viewPort.Width / 2, viewPort.Height / 3 + logoOffset), 6, PiskBlue);
 
-
-            foreach (var button in _buttonList) {
-                var center = new Vector2(button.X + button.Width / 2, button.Y + button.Height / 2);
-                var buttonColor = button.isHighlighted ? PiskDarkBlue : PiskBlue;
-                
-                sb.Draw(WhitePixel, new Rectangle(button.X, button.Y, button.Width, button.Height), 
-                    WhitePixelSourceRect, buttonColor);
-                sb.DrawStringCentered(button.Label, center, 2, Color.White);
-            }
+            DrawButtons(_buttonList, sb);
             
             sb.End();
         }
@@ -100,18 +104,50 @@ namespace piskworks
 
     public class DimensionScreen : GameScreen
     {
+        private List<NumberButton> _buttonList;
         public DimensionScreen(Game game) : base(game)
         {
+            _buttonList = new List<NumberButton>();
+            CreateButtons();
+        }
+
+        private void CreateButtons()
+        {
+            var viewPort = _game.GraphicsDevice.Viewport;
+            
+            var widthPart = 7;
+            var buttonWidth = viewPort.Width / widthPart;
+            var buttonHeight = viewPort.Height / 20;
+            var buttonOffset = viewPort.Height / 40;
+            var buttonOffsetTop = viewPort.Height / 3;
+            var buttonOffsetLeft = (viewPort.Width - buttonWidth ) / 2;
+
+            for (int i = 3; i <= 6; i++) {
+                var butNum = i - 3;
+                var b = new NumberButton(_game, buttonOffsetLeft, buttonOffsetTop + butNum * buttonHeight + butNum * buttonOffset,
+                    buttonWidth, buttonHeight, $"{i} x {i}", i);
+                _buttonList.Add(b);
+            }
         }
 
         public override void Update(GameTime gameTime)
         {
-            throw new NotImplementedException();
+            foreach (var button in _buttonList) {
+                button.isHighlighted = button.HasMouseOn();
+            }
         }
 
         public override void Draw(GameTime gameTime)
         {
-            throw new NotImplementedException();
+            _game.GraphicsDevice.Clear(PiskBeige);
+
+            var viewPort = _game.GraphicsDevice.Viewport;
+            var sb = _game.SpriteBatch;
+
+            sb.Begin(samplerState: SamplerState.PointClamp);
+            sb.DrawStringCentered("Choose dimension:", new Vector2(viewPort.Width / 2, viewPort.Height / 5), 2, PiskBlue);
+            DrawButtons(_buttonList, sb);
+            sb.End();
         }
     }
 
@@ -157,7 +193,7 @@ namespace piskworks
         public override void Update(GameTime gameTime)
         {
             foreach (var field in _fieldList) {
-                field.isHighlighted = field.HasMouseOn();
+                field.isHighlighted = field.HasMouseOn() && _board.GetSymbol(field.GameX, field.GameY, field.GameZ) == SymbolKind.Free;
             }
         }
 
@@ -193,7 +229,6 @@ namespace piskworks
                         }
 
                         var fieldHighlight = _fieldList[x, y, z].isHighlighted ? PiskHighlight : Color.White;
-
                         var fieldRect = new Rectangle(xScreen, yScreen, fieldSize,
                             fieldSize);
                         
@@ -213,6 +248,23 @@ namespace piskworks
             sb.End();
 
             _initialized = true;
+        }
+    }
+
+    public class EndScreen : GameScreen
+    {
+        public EndScreen(Game game) : base(game)
+        {
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Draw(GameTime gameTime)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -60,6 +60,7 @@ namespace piskworks
         private void startGameHost()
         {
             var server = new Server();
+            _currentScreen = new DimensionScreen(this);
             Player = new HostPlayer(server);
         }
 
