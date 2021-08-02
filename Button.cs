@@ -71,11 +71,7 @@ namespace piskworks
         {
             
         }
-
-        public override void Draw(GameTime gameTime)
-        {
-            base.Draw(gameTime);
-        }
+        
     }
 
     public class HostingButton : Button
@@ -84,6 +80,15 @@ namespace piskworks
         public HostingButton(Game game, int x, int y, int width, int height, string label, HostingKind kind, Texture2D texture = null) : base(game, x, y, width, height, label, texture)
         {
             Kind = kind;
+        }
+    }
+
+    public class NumberButton : Button
+    {
+        public int Number;
+        public NumberButton(Game game, int x, int y, int width, int height, string label, int number, Texture2D texture = null) : base(game, x, y, width, height, label, texture)
+        {
+            Number = number;
         }
     }
 }
