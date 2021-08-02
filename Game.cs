@@ -12,6 +12,8 @@ namespace piskworks
         public Player Player;
         public Viewer Viewer;
 
+        private IntroScreen _intro;
+
 
         public Game()
         {
@@ -24,8 +26,9 @@ namespace piskworks
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            
 
+            _intro = new IntroScreen(this);
+            
             base.Initialize();
         }
 
@@ -57,6 +60,8 @@ namespace piskworks
                 Exit();
 
             // TODO: Add your update logic here
+            
+            _intro.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -65,7 +70,9 @@ namespace piskworks
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             
-            Viewer.Draw3DVizualization(gameTime);
+            //Viewer.Draw3DVizualization(gameTime);
+            
+            _intro.Draw(gameTime);
             
             base.Draw(gameTime);
         }
