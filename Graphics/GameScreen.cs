@@ -7,7 +7,7 @@ namespace piskworks
 {
     public abstract class GameScreen
     {
-        private Game _game;
+        public Game _game;
         public Texture2D WhitePixel;
         public Rectangle WhitePixelSourceRect;
         public readonly Color PiskRed;
@@ -33,7 +33,6 @@ namespace piskworks
     }
     public class IntroScreen : GameScreen
     {
-        private Game _game;
         private HostingButton _hostButton;
         private HostingButton _joinButton;
 
@@ -41,14 +40,7 @@ namespace piskworks
 
         public IntroScreen(Game game) : base(game)
         {
-            _game = game;
-
             createButtons();
-        }
-
-        public void DisplayIntro()
-        {
-            
         }
 
         private void createButtons()
@@ -71,8 +63,8 @@ namespace piskworks
         {
             foreach (var button in _buttonList) {
                 button.isHighlighted = button.HasMouseOn();
-                if (button.isHighlighted) {
-                    Console.WriteLine(button.Label, "mouse on");
+                if (button.WasPresed()) {
+                    _game.TransitionFromIntro(button.Kind);
                 }
             }
         }
@@ -102,6 +94,57 @@ namespace piskworks
             
             sb.End();
         }
-        
+    }
+
+    public class DimensionScreen : GameScreen
+    {
+        public DimensionScreen(Game game) : base(game)
+        {
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Draw(GameTime gameTime)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class WaitScreen : GameScreen
+    {
+        public WaitScreen(Game game) : base(game)
+        {
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Draw(GameTime gameTime)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class PlayScreen : GameScreen
+    {
+        public PlayScreen(Game game) : base(game)
+        {
+            
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            
+        }
+
+        public override void Draw(GameTime gameTime)
+        {
+            _game.GraphicsDevice.Clear(PiskBlue);
+        }
     }
 }

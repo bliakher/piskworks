@@ -9,11 +9,12 @@ namespace piskworks
         private GraphicsDeviceManager _graphics;
         public SpriteBatch SpriteBatch;
 
+        private HostingKind _hostingKind;
         public Player Player;
         public Viewer Viewer;
 
-        private IntroScreen _intro;
-
+        private GameScreen _currentScreen;
+        
 
         public Game()
         {
@@ -27,7 +28,7 @@ namespace piskworks
         {
             // TODO: Add your initialization logic here
 
-            _intro = new IntroScreen(this);
+            _currentScreen = new IntroScreen(this);
             
             base.Initialize();
         }
@@ -41,17 +42,32 @@ namespace piskworks
             // TODO: use this.Content to load your game content here
         }
 
-        public void StartGame(HostingKind hostingKind)
+        private void startGame()
         {
-            Player player;
-            switch (hostingKind) {
-                case HostingKind.Guest:
-                    player = new GuestPlayer();
-                    break;
-                case HostingKind.Host:
-                    var server = new Server();
-                    break;
+            if (_hostingKind == HostingKind.Guest) {
+                startGameGuest();
             }
+            else {
+                startGameHost();
+            }
+        }
+
+        private void startGameHost()
+        {
+            var server = new Server();
+            Player = new HostPlayer(server);
+        }
+
+        private void startGameGuest()
+        {
+            Player = new GuestPlayer();
+            _currentScreen = new WaitScreen(this);
+        }
+
+        public void TransitionFromIntro(HostingKind hostingKind)
+        {
+            _hostingKind = hostingKind;
+            startGame();
         }
 
         protected override void Update(GameTime gameTime)
@@ -61,7 +77,7 @@ namespace piskworks
 
             // TODO: Add your update logic here
             
-            _intro.Update(gameTime);
+            _currentScreen.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -72,7 +88,7 @@ namespace piskworks
             
             //Viewer.Draw3DVizualization(gameTime);
             
-            _intro.Draw(gameTime);
+            _currentScreen.Draw(gameTime);
             
             base.Draw(gameTime);
         }
