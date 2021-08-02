@@ -10,6 +10,7 @@ namespace piskworks
         public SpriteBatch SpriteBatch;
 
         public Player Player;
+        public Viewer Viewer;
 
 
         public Game()
@@ -17,6 +18,7 @@ namespace piskworks
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            Viewer = new Viewer(new GameBoard(4), this);
         }
 
         protected override void Initialize()
@@ -30,6 +32,8 @@ namespace piskworks
         protected override void LoadContent()
         {
             SpriteBatch = new SpriteBatch(GraphicsDevice);
+            Texture2D fontTexture = Content.Load<Texture2D>("spritefont");
+            GraphicUtils.Font = FontLoader.CreateFont(fontTexture);
 
             // TODO: use this.Content to load your game content here
         }
@@ -61,44 +65,7 @@ namespace piskworks
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             
-
-            BasicEffect basicEffect = new BasicEffect(GraphicsDevice);
-            Matrix world = Matrix.CreateTranslation(0, 0, 0);
-            Matrix view = Matrix.CreateLookAt(new Vector3(0, 0, 10), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
-            Matrix projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45), 800f / 480f, 0.01f, 100f);
-
-            basicEffect.World = world;
-            basicEffect.View = view;
-            basicEffect.Projection = projection;
-            basicEffect.VertexColorEnabled = true;
-            
-            /*var p1 = new Vector3(0, 1, 0);
-            var p2 = new Vector3(0, 1, 2);
-
-            var (vertices, indexes) = GraphicUtils.MakeStraightLine(p1, p2, 0.1f, Color.Black);*/
-
-            var viewer = new Viewer(new GameBoard(4), this);
-            var (vertices, indexes) = viewer.CreateHorizontalLines();
-            
-            VertexBuffer vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor), vertices.Count,
-                BufferUsage.WriteOnly);
-            vertexBuffer.SetData(vertices.ToArray());
-            
-            IndexBuffer indexBuffer = new IndexBuffer(GraphicsDevice, IndexElementSize.ThirtyTwoBits, indexes.Count, BufferUsage.WriteOnly);
-            indexBuffer.SetData(indexes.ToArray());
-            
-            GraphicsDevice.SetVertexBuffer(vertexBuffer);
-            GraphicsDevice.Indices = indexBuffer;
- 
-            RasterizerState rasterizerState = new RasterizerState();
-            rasterizerState.CullMode = CullMode.None;
-            GraphicsDevice.RasterizerState = rasterizerState;
- 
-            foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0,0, indexes.Count / 3 );
-            }
+            Viewer.Draw3DVizualization(gameTime);
             
             base.Draw(gameTime);
         }
