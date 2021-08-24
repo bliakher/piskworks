@@ -134,6 +134,9 @@ namespace piskworks
         {
             foreach (var button in _buttonList) {
                 button.isHighlighted = button.HasMouseOn();
+                if (button.WasPresed()) {
+                    _game.TransitionFromDimension(button.Number);
+                }
             }
         }
 
@@ -179,21 +182,38 @@ namespace piskworks
         private Vizualizer3D _vizualizer;
         private GameBoard _board;
         private GameField[,,] _fieldList;
+        private bool _itsMyTurn;
 
         private bool _initialized;
         
-        public PlayScreen(Game game, GameBoard board) : base(game)
+        public PlayScreen(Game game, GameBoard board, bool itsMyTurn) : base(game)
         {
             _board = board;
             _vizualizer = new Vizualizer3D(_board, _game);
             _fieldList = new GameField[board.N, board.N, board.N];
             _initialized = false;
+            _itsMyTurn = itsMyTurn;
+        }
+
+        private void checkFields()
+        {
+            foreach (var field in _fieldList) {
+                field.isHighlighted = field.HasMouseOn() && _board.GetSymbol(field.GameX, field.GameY, field.GameZ) == SymbolKind.Free;
+                if (field.WasPresed()) {
+                    _game.Player.DoMove(field.GameX, field.GameY, field.GameZ);
+                    return;
+                }
+            }
         }
 
         public override void Update(GameTime gameTime)
         {
-            foreach (var field in _fieldList) {
-                field.isHighlighted = field.HasMouseOn() && _board.GetSymbol(field.GameX, field.GameY, field.GameZ) == SymbolKind.Free;
+            if (_game.Player.Comunicator.IsMsgAvailable()) {
+                _game.Player.DealWithMsg();
+            }
+            _itsMyTurn = !_game.Player.WaitingForResponse;
+            if (_itsMyTurn) {
+                checkFields();
             }
         }
 
@@ -209,9 +229,14 @@ namespace piskworks
             var layerSide = (viewport.Width - (_board.N - 1) * layerSpacing - layersTopLeftOffset * 2) / _board.N;
             var fieldSize = layerSide / _board.N;
 
+            var textTopOffset = viewport.Height / 30;
+            var whosPlaying = _itsMyTurn ? "It's YOUR turn!" : "Waiting for oponent's move";
+
             SpriteBank bank = _game.SpriteBank;
             
             sb.Begin(samplerState: SamplerState.PointClamp);
+            
+            sb.DrawStringCentered(whosPlaying, new Vector2(viewport.Width / 2, textTopOffset), 2, PiskBlue);
 
             for (int z = 0; z < _board.N; z++) {
 
@@ -253,18 +278,26 @@ namespace piskworks
 
     public class EndScreen : GameScreen
     {
-        public EndScreen(Game game) : base(game)
+        public bool YouWon { get; }
+        public EndScreen(Game game, bool youWon) : base(game)
         {
+            YouWon = youWon;
         }
 
         public override void Update(GameTime gameTime)
         {
-            throw new NotImplementedException();
+            
         }
 
         public override void Draw(GameTime gameTime)
         {
-            throw new NotImplementedException();
+            var label = YouWon ? "You won" : "You lost";
+            _game.GraphicsDevice.Clear(PiskBeige);
+            var viewport = _game.GraphicsDevice.Viewport;
+            var sb = _game.SpriteBatch;
+            sb.Begin(samplerState: SamplerState.PointClamp);
+            sb.DrawStringCentered(label, new Vector2(viewport.Width / 2, viewport.Height / 2), 4, PiskRed);
+            sb.End();
         }
     }
 }
