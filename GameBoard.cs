@@ -4,7 +4,8 @@ namespace piskworks
     {
         Free,
         Nought,
-        Cross
+        Cross,
+        Invalid
     }
     
     public class GameBoard
@@ -27,9 +28,9 @@ namespace piskworks
             return true;
         }
 
-        public void DoMove(GameMove move)
+        public bool DoMove(GameMove move)
         {
-            PlaceSybol(move.X, move.Y, move.Z, move.Symbol);
+            return PlaceSybol(move.X, move.Y, move.Z, move.Symbol);
         }
 
         public SymbolKind GetSymbol(int x, int y, int z)
@@ -47,9 +48,12 @@ namespace piskworks
             PlaceSybol(1, 3, 3, SymbolKind.Nought);
         }
 
-        public bool CheckForWin()
+        public bool CheckForWin(SymbolKind symbol)
         {
-            return CheckNoughtsForWin() || CheckCrossesForWin();
+            if (symbol == SymbolKind.Cross) {
+                return CheckCrossesForWin();
+            }
+            return CheckNoughtsForWin();
         }
 
         public bool CheckNoughtsForWin()
@@ -214,12 +218,12 @@ namespace piskworks
     }
     
 
-    public readonly struct GameMove
+    public struct GameMove
     {
-        public int X { get; }
-        public int Y { get; }
-        public int Z { get; }
-        public SymbolKind Symbol { get; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Z { get; set; }
+        public SymbolKind Symbol { get; set; }
 
         public GameMove(int x, int y, int z, SymbolKind symbol)
         {
