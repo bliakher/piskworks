@@ -6,18 +6,26 @@ namespace piskworks
 {
     public class Button : DrawableGameComponent
     {
-        public int X { get;  }
-        public int Y { get; }
-        public int Width { get; }
-        public int Height { get; }
-        public string Label { get; }
+        public int X { get; private set; }
+        public int Y { get; private set;}
+        public int Width { get; private set;}
+        public int Height { get; private set;}
+        public string Label { get; private set;}
         public bool isHighlighted { get; set; }
-        public Texture2D Texture { get; }
+        public Texture2D Texture { get; private set;}
         private Game Game;
         
         private MouseState lastMouseState;
-        
-        
+
+        public void UpdateData(int x, int y, int width, int height, string label)
+        {
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+            Label = label;
+        }
+
         public Button(Game game, int x, int y, int width, int height, string label, Texture2D texture = null) : base(game)
         {
             X = x;
@@ -42,14 +50,15 @@ namespace piskworks
 
         public bool WasPresed()
         {
+            var pressed = false;
             var mouse = Mouse.GetState();
             if (HasMouseOn()) {
                 if (lastMouseState.LeftButton == ButtonState.Released && mouse.LeftButton == ButtonState.Pressed) {
-                    return true;
+                    pressed = true;
                 }
             }
             lastMouseState = mouse;
-            return false;
+            return pressed;
         }
         
     }
