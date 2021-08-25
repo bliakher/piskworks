@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Threading;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -9,11 +10,14 @@ namespace piskworks
         private GraphicsDeviceManager _graphics;
         public SpriteBatch SpriteBatch;
         public SpriteBank SpriteBank;
-
+        
+        public Player Player { get; private set; }
+        public GameBoard Board { get; private set; }
+        
+        public bool IsGameOver { get; set; }
+        public bool ThisPlayerWon { get; set; }
+        
         private HostingKind _hostingKind;
-        public Player Player;
-        public Vizualizer3D Vizualizer3D;
-
         private GameScreen _currentScreen;
         
 
@@ -22,7 +26,8 @@ namespace piskworks
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-            Vizualizer3D = new Vizualizer3D(new GameBoard(4), this);
+            IsGameOver = false;
+            ThisPlayerWon = false;
         }
 
         protected override void Initialize()
@@ -44,39 +49,42 @@ namespace piskworks
             Texture2D sourceTexture = Content.Load<Texture2D>("piskworks");
             SpriteBank = new SpriteBank(sourceTexture);
 
-            // TODO: use this.Content to load your game content here
-        }
-
-        private void startGame()
-        {
-            if (_hostingKind == HostingKind.Guest) {
-                startGameGuest();
-            }
-            else {
-                startGameHost();
-            }
-        }
-
-        private void startGameHost()
-        {
-            var server = new Server();
-            _currentScreen = new DimensionScreen(this);
-            Player = new HostPlayer(server);
-        }
-
-        private void startGameGuest()
-        {
-            Player = new GuestPlayer();
-            //_currentScreen = new WaitScreen(this);
-            var board = new GameBoard(4);
-            board.FillForTesting();
-            _currentScreen = new PlayScreen(this, board);
         }
 
         public void TransitionFromIntro(HostingKind hostingKind)
         {
             _hostingKind = hostingKind;
-            startGame();
+            if (_hostingKind == HostingKind.Guest) {
+                Player = new GuestPlayer(this);
+                Player.Start();
+            }
+            else {
+                _currentScreen = new DimensionScreen(this);
+            }
+            
+        }
+
+        public void TransitionFromDimension(int dimension)
+        {
+            CreateBoard(dimension);
+            // var server = new Server(dimension);
+            // var serverSend = new ThreadSafeQueue<MessageObject>();
+            // var serverReceive = new ThreadSafeQueue<MessageObject>();
+            // server.InitializeHostComunicator(serverSend, serverReceive);
+            // var t = new Thread(server.Run);
+            // t.Start();
+            Player = new HostPlayer(this);
+            Player.Start();
+        }
+
+        public void SetCurScreen(GameScreen newScreen)
+        {
+            _currentScreen = newScreen;
+        }
+
+        public void CreateBoard(int dimension)
+        {
+            Board = new GameBoard(dimension);
         }
 
         protected override void Update(GameTime gameTime)
