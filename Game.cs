@@ -51,6 +51,11 @@ namespace piskworks
 
         }
 
+        public void RestartGame()
+        {
+            // ToDo: implement restart
+        }
+
         public void TransitionFromIntro(HostingKind hostingKind)
         {
             _hostingKind = hostingKind;

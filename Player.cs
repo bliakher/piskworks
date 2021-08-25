@@ -20,7 +20,7 @@ namespace piskworks
     {
         public bool WaitingForResponse;
 
-        protected SymbolKind _playerSymbol;
+        public SymbolKind PlayerSymbol;
         protected Game _game;
 
         private IPAddress _serverAddress;
@@ -36,7 +36,7 @@ namespace piskworks
         public Player(Game game)
         {
             _game = game;
-            _playerSymbol = SymbolKind.Cross;
+            PlayerSymbol = SymbolKind.Cross;
             //WaitingForResponse = false;
             _serverAddress = Dns.GetHostEntry("localhost").AddressList[0];
             _serverPort = 50000;
@@ -97,7 +97,7 @@ namespace piskworks
     {
         public HostPlayer(Game game) : base(game)
         {
-            _playerSymbol = SymbolKind.Cross;
+            PlayerSymbol = SymbolKind.Cross;
             Comunicator = new TestComunicator();
         }
         
@@ -140,9 +140,9 @@ namespace piskworks
 
         public override void DoMove(int x, int y, int z)
         {
-            var move = new GameMove(x, y, z, _playerSymbol);
+            var move = new GameMove(x, y, z, PlayerSymbol);
             _game.Board.DoMove(move);
-            if (_game.Board.CheckForWin(_playerSymbol)) {
+            if (_game.Board.CheckForWin(PlayerSymbol)) {
                 // this move was the winning move
                 Comunicator.Send(new MoveMsgObject(move, true));
                 AnnounceWinner(thisPlayerWon: true);
@@ -158,7 +158,7 @@ namespace piskworks
     {
         public GuestPlayer(Game game) : base(game)
         {
-            _playerSymbol = SymbolKind.Nought;
+            PlayerSymbol = SymbolKind.Nought;
         }
 
         public override void Start()
@@ -179,7 +179,7 @@ namespace piskworks
 
         public override void DoMove(int x, int y, int z)
         {
-            var move = new GameMove(x, y, z, _playerSymbol);
+            var move = new GameMove(x, y, z, PlayerSymbol);
             _game.Board.DoMove(move);
             Comunicator.Send(new MoveMsgObject(move));
             WaitingForResponse = true;  

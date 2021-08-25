@@ -53,11 +53,7 @@ namespace piskworks
         public bool CheckForWin(SymbolKind symbol)
         {
             WinningFields = new Field[N];
-            bool result;
-            if (symbol == SymbolKind.Cross) {
-                result =  checkCrossesForWin();
-            }
-            result = checkNoughtsForWin();
+            bool result = symbol == SymbolKind.Cross ? checkCrossesForWin() : checkNoughtsForWin();
             if (result == false) {
                 WinningFields = null; // winning fields has values only when there is a win on the board
             }

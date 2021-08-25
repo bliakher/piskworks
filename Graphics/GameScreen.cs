@@ -15,6 +15,8 @@ namespace piskworks
         public readonly Color PiskDarkBlue;
         public readonly Color PiskBeige;
         public readonly Color PiskHighlight;
+        public readonly Color PiskWinCross;
+        public readonly Color PiskWinNought;
 
         protected GameScreen(Game game)
         {
@@ -27,6 +29,8 @@ namespace piskworks
             PiskRed = new Color(167, 29, 38);
             PiskBeige = new Color(229, 224, 194);
             PiskHighlight = new Color(238, 225, 144);
+            PiskWinCross = new Color(63, 134, 172);
+            PiskWinNought = new Color(207, 105, 110);
         }
 
         public abstract void Update(GameTime gameTime);
@@ -187,15 +191,16 @@ namespace piskworks
         private Button _menuButton;
         
         private bool _itsMyTurn;
-        private bool _initialized;
+
+        private bool fieldsMarkedFlag;
         
         public PlayScreen(Game game, GameBoard board, bool itsMyTurn) : base(game)
         {
             _board = board;
             _vizualizer = new Vizualizer3D(_board, _game);
             _fieldList = new GameField[board.N, board.N, board.N];
-            _initialized = false;
             _itsMyTurn = itsMyTurn;
+            fieldsMarkedFlag = false;
         }
 
         private void checkFields()
@@ -211,12 +216,23 @@ namespace piskworks
 
         public override void Update(GameTime gameTime)
         {
-            _itsMyTurn = !_game.Player.WaitingForResponse;
-            if (_itsMyTurn) {
-                checkFields();
+            if (_game.IsGameOver) {
+                if (!fieldsMarkedFlag) {
+                    markWinningFields();
+                    fieldsMarkedFlag = true;
+                }
+                if (_menuButton.WasPresed()) {
+                    _game.RestartGame();
+                }
             }
-            else if (_game.Player.Comunicator.IsMsgAvailable()) {
-                _game.Player.DealWithMsg();
+            else { // normal game play
+                _itsMyTurn = !_game.Player.WaitingForResponse;
+                if (_itsMyTurn) {
+                    checkFields();
+                }
+                else if (_game.Player.Comunicator.IsMsgAvailable()) {
+                    _game.Player.DealWithMsg();
+                }
             }
         }
 
@@ -233,13 +249,20 @@ namespace piskworks
             var fieldSize = layerSide / _board.N;
 
             var textTopOffset = viewport.Height / 30;
-            var whosPlaying = _itsMyTurn ? "It's YOUR turn!" : "Waiting for oponent's move";
+            var whosPlayingText = _itsMyTurn ? "It's YOUR turn!" : "Waiting for oponent's move";
+            var whoWonText = _game.ThisPlayerWon ? "You WON!" : "You LOST..";
+            var displayedText = _game.IsGameOver ? whoWonText : whosPlayingText;
+            var textColor = _game.IsGameOver ? PiskRed : PiskBlue;
 
             SpriteBank bank = _game.SpriteBank;
             
             sb.Begin(samplerState: SamplerState.PointClamp);
             
-            sb.DrawStringCentered(whosPlaying, new Vector2(viewport.Width / 2, textTopOffset), 2, PiskBlue);
+            sb.DrawStringCentered(displayedText, new Vector2(viewport.Width / 2, textTopOffset), 2, PiskBlue);
+            if (_game.IsGameOver) {
+                updateMenuButton(viewport);
+                DrawButtons(new []{_menuButton}, sb);
+            }
 
             for (int z = 0; z < _board.N; z++) {
 
@@ -250,13 +273,23 @@ namespace piskworks
                     for (int y = 0; y < _board.N; y++) {
                         var yScreen = leftCornerY + y * fieldSize;
 
-                        if (!_initialized) {
+                        if (_fieldList[x, y, z] == null) { // create buttons on first draw
                             var field = new GameField(_game, xScreen, yScreen, fieldSize, fieldSize, 
                                 null, x, y, z, bank.GameField.Texture);
                             _fieldList[x, y, z] = field;
                         }
+                        else { // update button size - resizing
+                            _fieldList[x, y, z].UpdateData(xScreen, yScreen, fieldSize, fieldSize, null);
+                        }
 
-                        var fieldHighlight = _fieldList[x, y, z].isHighlighted ? PiskHighlight : Color.White;
+                        Color fieldHighlight;
+                        if (_game.IsGameOver) {
+                            fieldHighlight = _fieldList[x, y, z].HasWinningSymbol ? getWinHighlightColor() : Color.White;
+                        }
+                        else {
+                            fieldHighlight = _fieldList[x, y, z].isHighlighted ? PiskHighlight : Color.White;
+                        }
+
                         var fieldRect = new Rectangle(xScreen, yScreen, fieldSize,
                             fieldSize);
                         
@@ -274,8 +307,43 @@ namespace piskworks
             }
             
             sb.End();
+        }
+        private void markWinningFields()
+        {
+            if (_game.Board.WinningFields == null) {
+                return;
+            }
+            foreach (var field in _game.Board.WinningFields) {
+                _fieldList[field.X, field.Y, field.Z].HasWinningSymbol = true;
+            }
+        }
 
-            _initialized = true;
+        private Color getWinHighlightColor()
+        {
+            SymbolKind winSymbol;
+            if (_game.ThisPlayerWon) {
+                winSymbol = _game.Player.PlayerSymbol;
+            }
+            else {
+                winSymbol = _game.Player.PlayerSymbol == SymbolKind.Cross ? SymbolKind.Nought : SymbolKind.Cross;
+            }
+            return  winSymbol == SymbolKind.Cross ? PiskWinCross : PiskWinNought;
+        }
+
+        private void updateMenuButton(Viewport viewport)
+        {
+            var screenX = 2 * viewport.Width / 3;
+            var screenY = viewport.Height / 30;
+            var height = viewport.Height / 20;
+            var width = viewport.Width / 8;
+            var label = "Menu";
+            
+            if (_menuButton == null) {
+                _menuButton = new Button(_game, screenX, screenY, width, height, label);
+            }
+            else {
+                _menuButton.UpdateData(screenX, screenY, width, height, label);
+            }
         }
     }
 

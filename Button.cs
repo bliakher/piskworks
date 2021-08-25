@@ -69,11 +69,14 @@ namespace piskworks
         public int GameY;
         public int GameZ;
 
+        public bool HasWinningSymbol;
+
         public GameField(Game game, int x, int y, int width, int height, string label, int gamePosX, int gamePosY, int gamePosZ, Texture2D texture = null) : base(game, x, y, width, height, label, texture)
         {
             GameX = gamePosX;
             GameY = gamePosY;
             GameZ = gamePosZ;
+            HasWinningSymbol = false;
         }
         
         public override void Update(GameTime gameTime)
