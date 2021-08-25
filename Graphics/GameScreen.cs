@@ -136,6 +136,7 @@ namespace piskworks
                 button.isHighlighted = button.HasMouseOn();
                 if (button.WasPresed()) {
                     _game.TransitionFromDimension(button.Number);
+                    break;
                 }
             }
         }
@@ -163,6 +164,7 @@ namespace piskworks
 
         public override void Update(GameTime gameTime)
         {
+            
         }
 
         public override void Draw(GameTime gameTime)
@@ -182,8 +184,9 @@ namespace piskworks
         private Vizualizer3D _vizualizer;
         private GameBoard _board;
         private GameField[,,] _fieldList;
+        private Button _menuButton;
+        
         private bool _itsMyTurn;
-
         private bool _initialized;
         
         public PlayScreen(Game game, GameBoard board, bool itsMyTurn) : base(game)
@@ -208,12 +211,12 @@ namespace piskworks
 
         public override void Update(GameTime gameTime)
         {
-            if (_game.Player.Comunicator.IsMsgAvailable()) {
-                _game.Player.DealWithMsg();
-            }
             _itsMyTurn = !_game.Player.WaitingForResponse;
             if (_itsMyTurn) {
                 checkFields();
+            }
+            else if (_game.Player.Comunicator.IsMsgAvailable()) {
+                _game.Player.DealWithMsg();
             }
         }
 
@@ -291,7 +294,7 @@ namespace piskworks
 
         public override void Draw(GameTime gameTime)
         {
-            var label = YouWon ? "You won" : "You lost";
+            var label = YouWon ? "You won!" : "You lost..";
             _game.GraphicsDevice.Clear(PiskBeige);
             var viewport = _game.GraphicsDevice.Viewport;
             var sb = _game.SpriteBatch;
