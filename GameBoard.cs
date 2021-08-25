@@ -12,6 +12,8 @@ namespace piskworks
     {
         private SymbolKind[,,] board;
         public int N;
+        
+        public Field[] WinningFields;
 
         public GameBoard(int dimension)
         {
@@ -30,7 +32,7 @@ namespace piskworks
 
         public bool DoMove(GameMove move)
         {
-            return PlaceSybol(move.X, move.Y, move.Z, move.Symbol);
+            return PlaceSybol(move.Field.X, move.Field.Y, move.Field.Z, move.Symbol);
         }
 
         public SymbolKind GetSymbol(int x, int y, int z)
@@ -50,20 +52,26 @@ namespace piskworks
 
         public bool CheckForWin(SymbolKind symbol)
         {
+            WinningFields = new Field[N];
+            bool result;
             if (symbol == SymbolKind.Cross) {
-                return CheckCrossesForWin();
+                result =  checkCrossesForWin();
             }
-            return CheckNoughtsForWin();
+            result = checkNoughtsForWin();
+            if (result == false) {
+                WinningFields = null; // winning fields has values only when there is a win on the board
+            }
+            return result;
         }
 
-        public bool CheckNoughtsForWin()
+        private bool checkNoughtsForWin()
         {
             var nought = SymbolKind.Nought;
             return checkHorizontalX(nought) || checkHorizontalY(nought) || checkVertical(nought) 
                    || checkInclined(nought) || checkDiagonal(nought);
         }
 
-        public bool CheckCrossesForWin()
+        private bool checkCrossesForWin()
         {
             var cross = SymbolKind.Cross;
             return checkHorizontalX(cross) || checkHorizontalY(cross) || checkVertical(cross) 
@@ -76,6 +84,7 @@ namespace piskworks
                 for (int x = 0; x < N; x++) {
                     bool hasWin = true;
                     for (int y = 0; y < N; y++) {
+                        WinningFields[y] = new Field(x, y, z);
                         hasWin &= checkOne(checkSymbol, x, y, z);
                     }
                     if (hasWin) {
@@ -92,6 +101,7 @@ namespace piskworks
                 for (int y = 0; y < N; y++) {
                     bool hasWin = true;
                     for (int x = 0; x < N; x++) {
+                        WinningFields[x] = new Field(x, y, z);
                         hasWin &= checkOne(checkSymbol, x, y, z);
                     }
                     if (hasWin) {
@@ -108,6 +118,7 @@ namespace piskworks
                 for (int y = 0; y < N; y++) {
                     bool hasWin = true;
                     for (int z = 0; z < N; z++) {
+                        WinningFields[z] = new Field(x, y, z);
                         hasWin &= checkOne(checkSymbol, x, y, z);
                     }
                     if (hasWin) {
@@ -123,6 +134,7 @@ namespace piskworks
             for (int x = 0; x < N; x++) {
                 bool hasWin = true;
                 for (int yz = 0; yz < N; yz++) {
+                    WinningFields[yz] = new Field(x, yz, yz);
                     hasWin &= checkOne(checkSymbol, x, yz, yz);
                 }
                 if (hasWin) {
@@ -130,6 +142,7 @@ namespace piskworks
                 }
                 hasWin = true;
                 for (int y = 0; y < N; y++) {
+                    WinningFields[y] = new Field(x, y, N - y - 1);
                     hasWin &= checkOne(checkSymbol, x, y, N - y - 1);
                 }
                 if (hasWin) {
@@ -140,6 +153,7 @@ namespace piskworks
             for (int y = 0; y < N; y++) {
                 bool hasWin = true;
                 for (int xz = 0; xz < N; xz++) {
+                    WinningFields[xz] = new Field(xz, y, xz);
                     hasWin &= checkOne(checkSymbol, xz, y, xz);
                 }
                 if (hasWin) {
@@ -147,6 +161,7 @@ namespace piskworks
                 }
                 hasWin = true;
                 for (int x = 0; x < N; x++) {
+                    WinningFields[x] = new Field(x, y, N - x - 1);
                     hasWin &= checkOne(checkSymbol, x, y, N - x - 1);
                 }
                 if (hasWin) {
@@ -157,6 +172,7 @@ namespace piskworks
             for (int z = 0; z < N; z++) {
                 bool hasWin = true;
                 for (int xy = 0; xy < N; xy++) {
+                    WinningFields[xy] = new Field(xy, xy, z);
                     hasWin &= checkOne(checkSymbol, xy, xy, z);
                 }
                 if (hasWin) {
@@ -164,6 +180,7 @@ namespace piskworks
                 }
                 hasWin = true;
                 for (int x = 0; x < N; x++) {
+                    WinningFields[x] = new Field(x, N - x - 1, z);
                     hasWin &= checkOne(checkSymbol, x, N - x - 1, z);
                 }
                 if (hasWin) {
@@ -177,6 +194,7 @@ namespace piskworks
         {
             bool hasWin = true;
             for (int xyz = 0; xyz < N; xyz++) {
+                WinningFields[xyz] = new Field(xyz, xyz, xyz);
                 hasWin &= checkOne(checkSymbol, xyz, xyz, xyz);
             }
             if (hasWin) {
@@ -184,6 +202,7 @@ namespace piskworks
             }
             hasWin = true;
             for (int xy = 0; xy < N; xy++) {
+                WinningFields[xy] = new Field(xy, xy, N - xy - 1);
                 hasWin &= checkOne(checkSymbol, xy, xy, N - xy - 1);
             }
             if (hasWin) {
@@ -191,6 +210,7 @@ namespace piskworks
             }
             hasWin = true;
             for (int yz = 0; yz < N; yz++) {
+                WinningFields[yz] = new Field(N - yz - 1, yz, yz);
                 hasWin &= checkOne(checkSymbol, N - yz - 1, yz, yz);
             }
             if (hasWin) {
@@ -198,6 +218,7 @@ namespace piskworks
             }
             hasWin = true;
             for (int x = 0; x < N; x++) {
+                WinningFields[x] = new Field(x, N - x - 1, N - x - 1);
                 hasWin &= checkOne(checkSymbol, x, N - x - 1, N - x - 1);
             }
             if (hasWin) {
@@ -220,17 +241,27 @@ namespace piskworks
 
     public struct GameMove
     {
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Z { get; set; }
+        public Field Field { get; }
         public SymbolKind Symbol { get; set; }
 
         public GameMove(int x, int y, int z, SymbolKind symbol)
         {
+            Field = new Field(x, y, z);
+            Symbol = symbol;
+        }
+    }
+
+    public struct Field
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Z { get; set; }
+
+        public Field(int x, int y, int z)
+        {
             X = x;
             Y = y;
             Z = z;
-            Symbol = symbol;
         }
     }
 }
