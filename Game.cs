@@ -53,7 +53,11 @@ namespace piskworks
 
         public void RestartGame()
         {
-            // ToDo: implement restart
+            IsGameOver = false;
+            ThisPlayerWon = false;
+            Board = null;
+            Player = null;
+            _currentScreen = new IntroScreen(this);
         }
 
         public void TransitionFromIntro(HostingKind hostingKind)
