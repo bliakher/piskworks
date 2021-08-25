@@ -205,9 +205,9 @@ namespace piskworks
                 return true;
             }
             hasWin = true;
-            for (int yz = 0; yz < N; yz++) {
-                WinningFields[yz] = new Field(N - yz - 1, yz, yz);
-                hasWin &= checkOne(checkSymbol, N - yz - 1, yz, yz);
+            for (int xz = 0; xz < N; xz++) {
+                WinningFields[xz] = new Field(xz, N - xz - 1, xz);
+                hasWin &= checkOne(checkSymbol, xz, N - xz - 1, xz);
             }
             if (hasWin) {
                 return true;
