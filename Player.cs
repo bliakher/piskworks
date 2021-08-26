@@ -44,7 +44,6 @@ namespace piskworks
         
         public abstract void DealWithMsg();
         public abstract void DoMove(int x, int y, int z);
-        public abstract void ConnectOtherPlayer();
         public abstract void Start();
         
         public void InitializeComunicator(ThreadSafeQueue<MessageObject> sendQueue,
@@ -65,26 +64,6 @@ namespace piskworks
             Console.WriteLine("Connected.");
         }
 
-        // public async void SendMessageToServer(MessageObject msg)
-        // {
-        //     var msgString = JsonSerializer.Serialize<MessageObject>(msg);
-        //     await _writer.WriteLineAsync(msgString);
-        //     await _writer.FlushAsync();
-        //     
-        //     WaitingForResponse = true;
-        // }
-
-        public async void CheckPendingMsg()
-        {
-            if (_client.Available > 0) {
-                var msgString = await _reader.ReadLineAsync();
-                Console.WriteLine("Got a response: " + msgString);
-                WaitingForResponse = false;
-                MessageObject msg = JsonSerializer.Deserialize<MoveMsgObject>(msgString);
-                //DealWithMsg(msg);
-            }
-        }
-
         public void AnnounceWinner(bool thisPlayerWon)
         {
             _game.IsGameOver = true;
@@ -95,23 +74,30 @@ namespace piskworks
 
     public class HostPlayer : Player
     {
+        private const int _port = 50_000;
+        
         public HostPlayer(Game game) : base(game)
         {
             PlayerSymbol = SymbolKind.Cross;
-            Comunicator = new TestComunicator();
+            //Comunicator = new TestComunicator();
         }
         
-        public override void Start()
+        public override async void Start()
         {
             _game.SetCurScreen(new WaitScreen(_game));
-            //ConnectOtherPlayer(); // ToDo: react to possible exceptions
+            await connectOtherPlayer(); // ToDo: react to possible exceptions
             _game.SetCurScreen(new PlayScreen(_game, _game.Board, true));
             WaitingForResponse = false;
         }
 
-        public override async void ConnectOtherPlayer()
+        private async Task connectOtherPlayer()
         {
-            await Task.Factory.StartNew(() => Thread.Sleep(2000));
+            var ipAddress = Dns.GetHostEntry("localhost").AddressList[0];
+            var listener = new TcpListener(ipAddress, _port);
+            listener.Start();
+            var client = await listener.AcceptTcpClientAsync();
+            Comunicator = new ComunicatorTcp(client);
+            Comunicator.StartComunication();
         }
         
         public override void DealWithMsg()
@@ -161,10 +147,10 @@ namespace piskworks
             PlayerSymbol = SymbolKind.Nought;
         }
 
-        public override void Start()
+        public override  async void Start()
         {
             _game.SetCurScreen(new WaitScreen(_game));
-            ConnectOtherPlayer(); // ToDo: react to possible exceptions
+            await connectOtherPlayer(); // ToDo: react to possible exceptions
             _game.SetCurScreen(new PlayScreen(_game, _game.Board, false));
             WaitingForResponse = true;
         }
@@ -185,149 +171,9 @@ namespace piskworks
             WaitingForResponse = true;  
         }
 
-        public override void ConnectOtherPlayer()
+        private async Task connectOtherPlayer()
         {
             
-        }
-    }
-
-    public class Server
-    {
-        public HostPlayer host;
-        public GuestPlayer guest;
-        private GameBoard _board;
-
-        const int _port = 50000;
-        private TcpListener _listener;
-
-        private TcpClient _player1;
-        private TcpClient _player2;
-
-        private IComunicator _hostComunicator;
-        private IComunicator _joinComunicator;
-
-        private List<MoveMsgObject> _testMoves;
-
-        public Server(int boardDim)
-        {
-            _board = new GameBoard(boardDim);
-            _testMoves = new List<MoveMsgObject>();
-            getTestMsgs();
-        }
-
-        public void InitializeHostComunicator(ThreadSafeQueue<MessageObject> sendQueue,
-            ThreadSafeQueue<MessageObject> receiveQueue)
-        {
-            _hostComunicator = new ComunicatorMock(sendQueue, receiveQueue);
-        }
-
-        public async void Run()
-        {
-            // var ipAddress = Dns.GetHostEntry("localhost").AddressList[0];
-            // _listener = new TcpListener(ipAddress, _port);
-            // _listener.Start();
-            //
-            // _player1 = await _listener.AcceptTcpClientAsync();
-            // Console.WriteLine("Server connected");
-            //
-            // var stream = _player1.GetStream();
-            // var writer = new StreamWriter(stream);
-            // var reader = new StreamReader(stream);
-            
-            // wait for join player
-            Thread.Sleep(3000); // simulating waiting
-            // when he connects, send initial msg to players
-            _hostComunicator.Send(new MessageObject(){Kind = MessageKind.Initial});
-            Console.WriteLine("initial msg sent");
-            //_joinComunicator.Send(new MessageObject(){Kind = MessageKind.Initial});
-            
-            // alternate receiving moves from players
-            var hostWon = false;
-            var i = 0;
-            while (true) {
-                var moveHost = waitForValidMove(_hostComunicator);
-                
-                // received valid move - is already played on board
-                // check if player won
-                if (_board.CheckForWin(moveHost.Symbol)) {
-                    hostWon = true;
-                    _hostComunicator.Send(new MessageObject(){Kind = MessageKind.GameEnd});
-                    //_joinComunicator.Send(new MoveMsgObject(moveHost, true));
-                    break;
-                }
-                //_joinComunicator.Send(new MoveMsgObject(moveHost));
-                
-                // var moveJoin = waitForValidMove(_joinComunicator);
-                // for testing
-                var moveJoin = _testMoves[i].Move;
-                i++;
-                
-                if (_board.CheckForWin(moveJoin.Symbol)) {
-                    hostWon = false;
-                    //_joinComunicator.Send(new MessageObject(){Kind = MessageKind.GameEnd});
-                    _hostComunicator.Send(new MoveMsgObject(moveHost, true));
-                    break;
-                }
-                _hostComunicator.Send(new MoveMsgObject(moveJoin));
-
-            }
-
-
-            // var i = 0;
-            // while (i < 4) {
-            //     
-            //
-            //     Console.WriteLine("Sending move");
-            //     var msgOut = _testMoves[i];
-            //     var msgOutStr = JsonSerializer.Serialize(msgOut);
-            //
-            //     await writer.WriteLineAsync(msgOutStr);
-            //     await writer.FlushAsync();
-            //     Console.WriteLine("Move sent.");
-            //     Console.WriteLine("Move:" + msgOutStr);
-            //
-            //
-            //     while (_player1.Available <= 0) {
-            //         continue;
-            //     }
-            //     var msgStr = await reader.ReadLineAsync();
-            //     var msg = JsonSerializer.Deserialize<MessageObject>(msgStr);
-            //     Console.WriteLine("Server received msg");
-            //     
-            //     i++;
-            // }
-        }
-
-        private MessageObject waitForMsg(IComunicator playerCom)
-        {
-            // look if msg available, if not sleep and try again
-            while (!playerCom.IsMsgAvailable()) {
-                Thread.Sleep(100);
-            }
-            return playerCom.Receive();
-        }
-
-        private GameMove waitForValidMove(IComunicator playerCom)
-        {
-            while (true) {
-                var msg = waitForMsg(playerCom);
-                if (msg is MoveMsgObject moveMsg) {
-                    var move = moveMsg.Move;
-                    var valid = _board.DoMove(move);
-                    if (valid) {
-                        return move;
-                    }
-                    Console.WriteLine("Server received invalid move");
-                }
-            }
-        }
-
-        private void getTestMsgs()
-        {
-            _testMoves.Add(new MoveMsgObject(new GameMove(1, 0, 0, SymbolKind.Nought)));
-            _testMoves.Add(new MoveMsgObject(new GameMove(1, 1, 0, SymbolKind.Nought)));
-            _testMoves.Add(new MoveMsgObject(new GameMove(1, 2, 0, SymbolKind.Nought)));
-            _testMoves.Add(new MoveMsgObject(new GameMove(1, 3, 0, SymbolKind.Nought)));
         }
     }
 
@@ -335,8 +181,100 @@ namespace piskworks
     {
         public void Send(MessageObject msg);
         public MessageObject Receive();
-
         public bool IsMsgAvailable();
+        public void StartComunication();
+        public void EndComunication();
+
+    }
+
+    public class ComunicatorTcp : IComunicator
+    {
+        private bool _comunicationEnded;
+        
+        private ThreadSafeQueue<MessageObject> _sendQueue;
+        private ThreadSafeQueue<MessageObject> _receiveQueue;
+        
+        private TcpClient _tcpClient;
+        private StreamReader _reader;
+        private StreamWriter _writer;
+
+        public ComunicatorTcp(TcpClient tcpClient)
+        {
+            _tcpClient = tcpClient;
+            _sendQueue = new ThreadSafeQueue<MessageObject>();
+            _receiveQueue = new ThreadSafeQueue<MessageObject>();
+            _comunicationEnded = false;
+        }
+
+        private void runNetworkComunication()
+        {
+            while (!_comunicationEnded) {
+                var didSth = false;
+                // send messages if available
+                if (_sendQueue.Count > 0) {
+                    doSend();
+                    didSth = true;
+                }
+                // receive messages if available
+                if (_tcpClient.Available > 0) {
+                    doReceive();
+                    didSth = true;
+                }
+                // if nothing to do - wait
+                if (!didSth) {
+                    Thread.Sleep(100);
+                }
+            }
+            
+        }
+        private void initializeStreams()
+        {
+            var stream = _tcpClient.GetStream();
+            _reader = new StreamReader(stream);
+            _writer = new StreamWriter(stream);
+        }
+
+        private async void doSend()
+        {
+            var msg = _sendQueue.Dequeue();
+            var msgText = JsonSerializer.Serialize(msg);
+            await _writer.WriteLineAsync(msgText);
+            await _writer.FlushAsync();
+        }
+
+        private async void doReceive()
+        {
+            var msgText = await _reader.ReadLineAsync();
+            var msg = JsonSerializer.Deserialize<MessageObject>(msgText);
+            _receiveQueue.Enqueue(msg);
+        }
+
+        public void Send(MessageObject msg)
+        {
+            _sendQueue.Enqueue(msg);
+        }
+
+        public MessageObject Receive()
+        {
+            return _receiveQueue.Dequeue();
+        }
+
+        public bool IsMsgAvailable()
+        {
+            return _receiveQueue.Count > 0;
+        }
+
+        public void StartComunication()
+        {
+            initializeStreams();
+            var t = new Thread(runNetworkComunication);
+            t.Start();
+        }
+
+        public void EndComunication()
+        {
+            _comunicationEnded = true;
+        }
     }
 
     public class ComunicatorMock : IComunicator
@@ -364,6 +302,16 @@ namespace piskworks
         {
             return _receiveQueue.Count > 0;
         }
+
+        public void StartComunication()
+        {
+            // empty operation in mock
+        }
+
+        public void EndComunication()
+        {
+            // empty operation in mock
+        }
     }
 
     public class TestComunicator : IComunicator
@@ -389,6 +337,16 @@ namespace piskworks
         public bool IsMsgAvailable()
         {
             return i < 4;
+        }
+
+        public void StartComunication()
+        {
+            // empty operation in testing
+        }
+
+        public void EndComunication()
+        {
+            // empty operation in testing
         }
     }
 }
