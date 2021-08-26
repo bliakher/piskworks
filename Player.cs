@@ -142,6 +142,8 @@ namespace piskworks
 
     public class GuestPlayer : Player
     {
+        private const int _port = 50_000;
+
         public GuestPlayer(Game game) : base(game)
         {
             PlayerSymbol = SymbolKind.Nought;
@@ -173,7 +175,17 @@ namespace piskworks
 
         private async Task connectOtherPlayer()
         {
-            
+            var client = new TcpClient();
+            IPAddress ipAddress = null;
+            var hasAddress = false;
+            while (!hasAddress) {
+                Console.WriteLine("Write IP address of host player:");
+                var addressStr = Console.ReadLine();
+                hasAddress = IPAddress.TryParse(addressStr, out ipAddress);
+            }
+            await client.ConnectAsync(ipAddress, _port);
+            Comunicator = new ComunicatorTcp(client);
+            Comunicator.StartComunication();
         }
     }
 
