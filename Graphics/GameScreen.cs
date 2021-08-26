@@ -162,13 +162,16 @@ namespace piskworks
     public class WaitScreen : GameScreen
     {
         private const string msg = "Waiting for the other player to connect..";
+        private Button _cancelButton;
         public WaitScreen(Game game) : base(game)
         {
         }
 
         public override void Update(GameTime gameTime)
         {
-            
+            if (_cancelButton.WasPresed()) {
+                _game.RestartGame();
+            }
         }
 
         public override void Draw(GameTime gameTime)
@@ -177,8 +180,23 @@ namespace piskworks
 
             var sb = _game.SpriteBatch;
             var viewport = _game.GraphicsDevice.Viewport;
+            var centedWidth = viewport.Width / 2;
+            var buttonWidth = viewport.Width / 7;
+            var buttonHeight = viewport.Height / 10;
+            var buttonLabel = "Cancel";
+            
+            
             sb.Begin(samplerState: SamplerState.PointClamp);
-            sb.DrawStringCentered(msg, new Vector2(viewport.Width / 2, viewport.Height / 2), 2, PiskBlue);
+            sb.DrawStringCentered(msg, new Vector2(centedWidth, viewport.Height / 2), 2, PiskBlue);
+            if (_cancelButton == null) {
+                _cancelButton = new Button(_game, centedWidth - buttonWidth / 2, 2 * viewport.Height / 3, buttonWidth,
+                    buttonHeight, buttonLabel);
+            }
+            else {
+                _cancelButton.UpdateData(centedWidth - buttonWidth / 2, 2 * viewport.Height / 3, buttonWidth,
+                    buttonHeight, buttonLabel);
+            }
+            DrawButtons(new []{_cancelButton}, sb);
             sb.End();
         }
     }
@@ -346,29 +364,5 @@ namespace piskworks
             }
         }
     }
-
-    public class EndScreen : GameScreen
-    {
-        public bool YouWon { get; }
-        public EndScreen(Game game, bool youWon) : base(game)
-        {
-            YouWon = youWon;
-        }
-
-        public override void Update(GameTime gameTime)
-        {
-            
-        }
-
-        public override void Draw(GameTime gameTime)
-        {
-            var label = YouWon ? "You won!" : "You lost..";
-            _game.GraphicsDevice.Clear(PiskBeige);
-            var viewport = _game.GraphicsDevice.Viewport;
-            var sb = _game.SpriteBatch;
-            sb.Begin(samplerState: SamplerState.PointClamp);
-            sb.DrawStringCentered(label, new Vector2(viewport.Width / 2, viewport.Height / 2), 4, PiskRed);
-            sb.End();
-        }
-    }
+    
 }
