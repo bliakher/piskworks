@@ -1,3 +1,5 @@
+using System;
+
 namespace piskworks
 {
     public enum SymbolKind
@@ -237,13 +239,18 @@ namespace piskworks
 
     public struct GameMove
     {
-        public Field Field { get; }
+        public Field Field { get; set; }
         public SymbolKind Symbol { get; set; }
 
         public GameMove(int x, int y, int z, SymbolKind symbol)
         {
             Field = new Field(x, y, z);
             Symbol = symbol;
+        }
+
+        public override string ToString()
+        {
+            return "Move " + Symbol + $" X: {Field.X} Y: {Field.Y} Z: {Field.Z}";
         }
     }
 
@@ -259,5 +266,6 @@ namespace piskworks
             Y = y;
             Z = z;
         }
+        
     }
 }
