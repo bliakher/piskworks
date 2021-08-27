@@ -36,16 +36,20 @@ namespace piskworks
         public abstract void Update(GameTime gameTime);
         public abstract void Draw(GameTime gameTime);
 
-        public void DrawButtons(IEnumerable<Button> buttons, SpriteBatch sb)
+        protected void DrawButtons(IEnumerable<Button> buttons, SpriteBatch sb)
         {
             foreach (var button in buttons) {
-                var center = new Vector2(button.X + button.Width / 2, button.Y + button.Height / 2);
-                var buttonColor = button.isHighlighted ? PiskDarkBlue : PiskBlue;
-                
-                sb.Draw(WhitePixel, new Rectangle(button.X, button.Y, button.Width, button.Height), 
-                    WhitePixelSourceRect, buttonColor);
-                sb.DrawStringCentered(button.Label, center, 2, Color.White);
+                DrawButton(button, sb);
             }
+        }
+        protected void DrawButton(Button button, SpriteBatch sb)
+        {
+            var center = new Vector2(button.X + button.Width / 2, button.Y + button.Height / 2);
+            var buttonColor = button.isHighlighted ? PiskDarkBlue : PiskBlue;
+                
+            sb.Draw(WhitePixel, new Rectangle(button.X, button.Y, button.Width, button.Height), 
+                WhitePixelSourceRect, buttonColor);
+            sb.DrawStringCentered(button.Label, center, 2, Color.White);
         }
 
     }
@@ -58,10 +62,10 @@ namespace piskworks
 
         public IntroScreen(Game game) : base(game)
         {
-            createButtons();
+            createOrUpdateButtons(true);
         }
 
-        private void createButtons()
+        private void createOrUpdateButtons(bool create = false)
         {
             var viewPort = _game.GraphicsDevice.Viewport;
 
@@ -72,13 +76,24 @@ namespace piskworks
             var buttonOffsetTop = 2 * viewPort.Height / 3;
             var buttonOffsetLeft = (widthPart - 1) / 2 * viewPort.Width / widthPart;
 
-            _hostButton = new HostingButton(_game, buttonOffsetLeft, buttonOffsetTop, buttonWidth, buttonHeight, "Host", HostingKind.Host);
-            _joinButton = new HostingButton(_game, buttonOffsetLeft, buttonOffsetTop + buttonHeight + buttonOffset, buttonWidth, buttonHeight, "Join", HostingKind.Guest);
-            _buttonList = new List<HostingButton>() {_hostButton, _joinButton};
+            if (create) {
+                _hostButton = new HostingButton(_game, buttonOffsetLeft, buttonOffsetTop, 
+                    buttonWidth, buttonHeight, "Host", HostingKind.Host);
+                _joinButton = new HostingButton(_game, buttonOffsetLeft, buttonOffsetTop + buttonHeight + buttonOffset,
+                    buttonWidth, buttonHeight, "Join", HostingKind.Guest);
+                _buttonList = new List<HostingButton>() {_hostButton, _joinButton};
+            }
+            else {
+                _hostButton.UpdateData(buttonOffsetLeft, buttonOffsetTop, buttonWidth, buttonHeight, "Host");
+                _joinButton.UpdateData(buttonOffsetLeft, buttonOffsetTop + buttonHeight + buttonOffset, 
+                    buttonWidth, buttonHeight, "Join");
+            }
+           
         }
 
         public override void Update(GameTime gameTime)
         {
+            createOrUpdateButtons();
             foreach (var button in _buttonList) {
                 button.isHighlighted = button.HasMouseOn();
                 if (button.WasPresed()) {
@@ -112,30 +127,41 @@ namespace piskworks
         public DimensionScreen(Game game) : base(game)
         {
             _buttonList = new List<NumberButton>();
-            CreateButtons();
+            createOrUpdateButtons(true);
         }
 
-        private void CreateButtons()
+        private void createOrUpdateButtons(bool create = false)
         {
             var viewPort = _game.GraphicsDevice.Viewport;
             
-            var widthPart = 7;
+            var widthPart = 6;
             var buttonWidth = viewPort.Width / widthPart;
             var buttonHeight = viewPort.Height / 20;
             var buttonOffset = viewPort.Height / 40;
             var buttonOffsetTop = viewPort.Height / 3;
             var buttonOffsetLeft = (viewPort.Width - buttonWidth ) / 2;
 
-            for (int i = 3; i <= 6; i++) {
-                var butNum = i - 3;
-                var b = new NumberButton(_game, buttonOffsetLeft, buttonOffsetTop + butNum * buttonHeight + butNum * buttonOffset,
-                    buttonWidth, buttonHeight, $"{i} x {i}", i);
-                _buttonList.Add(b);
+            if (create) {
+                for (int i = 3; i <= 6; i++) {
+                    var butNum = i - 3;
+                    var b = new NumberButton(_game, buttonOffsetLeft, buttonOffsetTop + butNum * buttonHeight + butNum * buttonOffset,
+                        buttonWidth, buttonHeight, $"{i} x {i} x {i}", i);
+                    _buttonList.Add(b);
+                }
             }
+            else {
+                for (int i = 3; i <= 6; i++) {
+                    var butNum = i - 3;
+                    _buttonList[butNum].UpdateData(buttonOffsetLeft, buttonOffsetTop + butNum * buttonHeight + butNum * buttonOffset,
+                        buttonWidth, buttonHeight, $"{i} x {i} x {i}");
+                }
+            }
+            
         }
 
         public override void Update(GameTime gameTime)
         {
+            createOrUpdateButtons();
             foreach (var button in _buttonList) {
                 button.isHighlighted = button.HasMouseOn();
                 if (button.WasPresed()) {
@@ -165,10 +191,29 @@ namespace piskworks
         private Button _cancelButton;
         public WaitScreen(Game game) : base(game)
         {
+            createOrUpdateButtons(true);
+        }
+
+        private void createOrUpdateButtons(bool create = false)
+        {
+            var viewport = _game.GraphicsDevice.Viewport;
+            var centedWidth = viewport.Width / 2;
+            var buttonWidth = viewport.Width / 7;
+            var buttonHeight = viewport.Height / 10;
+            var buttonLabel = "Cancel";
+            
+            if (create) {
+                _cancelButton = new Button(_game, centedWidth - buttonWidth / 2, 2 * viewport.Height / 3, buttonWidth,
+                    buttonHeight, buttonLabel);
+            } else {
+                _cancelButton.UpdateData(centedWidth - buttonWidth / 2, 2 * viewport.Height / 3, buttonWidth,
+                    buttonHeight, buttonLabel);
+            }
         }
 
         public override void Update(GameTime gameTime)
         {
+            createOrUpdateButtons();
             if (_cancelButton.WasPresed()) {
                 _game.RestartGame();
             }
@@ -181,22 +226,10 @@ namespace piskworks
             var sb = _game.SpriteBatch;
             var viewport = _game.GraphicsDevice.Viewport;
             var centedWidth = viewport.Width / 2;
-            var buttonWidth = viewport.Width / 7;
-            var buttonHeight = viewport.Height / 10;
-            var buttonLabel = "Cancel";
-            
             
             sb.Begin(samplerState: SamplerState.PointClamp);
             sb.DrawStringCentered(msg, new Vector2(centedWidth, viewport.Height / 2), 2, PiskBlue);
-            if (_cancelButton == null) {
-                _cancelButton = new Button(_game, centedWidth - buttonWidth / 2, 2 * viewport.Height / 3, buttonWidth,
-                    buttonHeight, buttonLabel);
-            }
-            else {
-                _cancelButton.UpdateData(centedWidth - buttonWidth / 2, 2 * viewport.Height / 3, buttonWidth,
-                    buttonHeight, buttonLabel);
-            }
-            DrawButtons(new []{_cancelButton}, sb);
+            DrawButton(_cancelButton, sb);
             sb.End();
         }
     }
@@ -224,6 +257,9 @@ namespace piskworks
         private void checkFields()
         {
             foreach (var field in _fieldList) {
+                if (field == null) {
+                    return;
+                }
                 field.isHighlighted = field.HasMouseOn() && _board.GetSymbol(field.GameX, field.GameY, field.GameZ) == SymbolKind.Free;
                 if (field.WasPresed()) {
                     _game.Player.DoMove(field.GameX, field.GameY, field.GameZ);
@@ -239,6 +275,7 @@ namespace piskworks
                     markWinningFields();
                     fieldsMarkedFlag = true;
                 }
+                updateMenuButton();
                 if (_menuButton.WasPresed()) {
                     _game.RestartGame();
                 }
@@ -278,8 +315,7 @@ namespace piskworks
             
             sb.DrawStringCentered(displayedText, new Vector2(viewport.Width / 2, textTopOffset), 2, PiskBlue);
             if (_game.IsGameOver) {
-                updateMenuButton(viewport);
-                DrawButtons(new []{_menuButton}, sb);
+                DrawButton(_menuButton, sb);
             }
 
             for (int z = 0; z < _board.N; z++) {
@@ -299,7 +335,7 @@ namespace piskworks
                         else { // update button size - resizing
                             _fieldList[x, y, z].UpdateData(xScreen, yScreen, fieldSize, fieldSize, null);
                         }
-
+                        // get correct highlight for fields
                         Color fieldHighlight;
                         if (_game.IsGameOver) {
                             fieldHighlight = _fieldList[x, y, z].HasWinningSymbol ? getWinHighlightColor() : Color.White;
@@ -348,8 +384,9 @@ namespace piskworks
             return  winSymbol == SymbolKind.Cross ? PiskWinCross : PiskWinNought;
         }
 
-        private void updateMenuButton(Viewport viewport)
+        private void updateMenuButton()
         {
+            var viewport = _game.GraphicsDevice.Viewport;
             var screenX = 2 * viewport.Width / 3;
             var screenY = viewport.Height / 30;
             var height = viewport.Height / 20;
