@@ -18,28 +18,18 @@ namespace piskworks
     
     public abstract class Player
     {
+        protected const int PORT = 60_525;
+
         public bool WaitingForResponse;
 
         public SymbolKind PlayerSymbol;
         protected Game _game;
-
-        private IPAddress _serverAddress;
-        private int _serverPort;
-
-        private TcpClient _client;
-        private NetworkStream _stream;
-        private StreamWriter _writer;
-        private StreamReader _reader;
 
         public IComunicator Comunicator;
         
         public Player(Game game)
         {
             _game = game;
-            PlayerSymbol = SymbolKind.Cross;
-            //WaitingForResponse = false;
-            _serverAddress = Dns.GetHostEntry("localhost").AddressList[0];
-            _serverPort = 50000;
         }
         
         public abstract void DealWithMsg();
@@ -51,21 +41,10 @@ namespace piskworks
         {
             Comunicator = new ComunicatorMock(sendQueue, receiveQueue);
         }
-
-        public async Task ConnectToServer()
-        {
-            _client = new TcpClient();
-            await _client.ConnectAsync(_serverAddress, _serverPort);
-            Console.WriteLine("Connecting to server.");
-            _stream = _client.GetStream();
-            //_stream.ReadTimeout = 2000;
-            _reader = new StreamReader(_stream);
-            _writer = new StreamWriter(_stream);
-            Console.WriteLine("Connected.");
-        }
-
+        
         public void AnnounceWinner(bool thisPlayerWon)
         {
+            Comunicator.EndComunication();
             _game.IsGameOver = true;
             _game.ThisPlayerWon = thisPlayerWon;
         }
@@ -74,8 +53,6 @@ namespace piskworks
 
     public class HostPlayer : Player
     {
-        private const int _port = 50_000;
-        
         public HostPlayer(Game game) : base(game)
         {
             PlayerSymbol = SymbolKind.Cross;
@@ -86,6 +63,7 @@ namespace piskworks
         {
             _game.SetCurScreen(new WaitScreen(_game));
             await connectOtherPlayer(); // ToDo: react to possible exceptions
+            shareDimension();
             _game.SetCurScreen(new PlayScreen(_game, _game.Board, true));
             WaitingForResponse = false;
         }
@@ -93,28 +71,37 @@ namespace piskworks
         private async Task connectOtherPlayer()
         {
             var ipAddress = Dns.GetHostEntry("localhost").AddressList[0];
-            var listener = new TcpListener(ipAddress, _port);
+            var listener = new TcpListener(ipAddress, PORT);
             listener.Start();
+            Console.WriteLine($"listening on port {PORT}");
             var client = await listener.AcceptTcpClientAsync();
+            Console.WriteLine("connected");
+            listener.Stop();
             Comunicator = new ComunicatorTcp(client);
             Comunicator.StartComunication();
+        }
+
+        private void shareDimension()
+        {
+            Comunicator.Send(MessageObject.CreateDimensionMsg(_game.Board.N));
         }
         
         public override void DealWithMsg()
         {
             var msg = Comunicator.Receive();
-            if (msg is MoveMsgObject moveObj) {
-                dealWithMove(moveObj.Move);
+            if (msg.Kind == MessageKind.Move) {
+                dealWithMove(msg.Move);
             }
         }
 
         private void dealWithMove(GameMove move)
         {
             if (WaitingForResponse) {
+                Console.WriteLine(move.ToString());
                 _game.Board.DoMove(move);
                 if (_game.Board.CheckForWin(move.Symbol)) {
                     // other player had the winning move
-                    Comunicator.Send(new MessageObject(){Kind = MessageKind.GameEnd});
+                    Comunicator.Send(MessageObject.CreateGameOverMsg());
                     AnnounceWinner(thisPlayerWon: false);
                 }
                 WaitingForResponse = false;
@@ -130,11 +117,11 @@ namespace piskworks
             _game.Board.DoMove(move);
             if (_game.Board.CheckForWin(PlayerSymbol)) {
                 // this move was the winning move
-                Comunicator.Send(new MoveMsgObject(move, true));
+                Comunicator.Send(MessageObject.CreateMoveMsg(move, true));
                 AnnounceWinner(thisPlayerWon: true);
             }
             else {
-                Comunicator.Send(new MoveMsgObject(move));
+                Comunicator.Send(MessageObject.CreateMoveMsg(move));
                 WaitingForResponse = true;   
             }
         }
@@ -142,26 +129,33 @@ namespace piskworks
 
     public class GuestPlayer : Player
     {
-        private const int _port = 50_000;
 
         public GuestPlayer(Game game) : base(game)
         {
             PlayerSymbol = SymbolKind.Nought;
         }
 
-        public override  async void Start()
+        public override async void Start()
         {
             _game.SetCurScreen(new WaitScreen(_game));
             await connectOtherPlayer(); // ToDo: react to possible exceptions
+            var dimension = await getDimension();
+            _game.CreateBoard(dimension);
             _game.SetCurScreen(new PlayScreen(_game, _game.Board, false));
             WaitingForResponse = true;
         }
         public override void DealWithMsg()
         {
             var msg = Comunicator.Receive();
-            if (msg is MoveMsgObject moveObj) {
-                _game.Board.DoMove(moveObj.Move);
+            if (msg.Kind == MessageKind.Move) {
+                _game.Board.DoMove(msg.Move);
+                if (msg.IsWinning) {
+                    AnnounceWinner(false);
+                }
                 WaitingForResponse = false;
+            }
+            else if (msg.Kind == MessageKind.GameOver) {
+                AnnounceWinner(true);
             }
         }
 
@@ -169,8 +163,24 @@ namespace piskworks
         {
             var move = new GameMove(x, y, z, PlayerSymbol);
             _game.Board.DoMove(move);
-            Comunicator.Send(new MoveMsgObject(move));
+            Comunicator.Send(MessageObject.CreateMoveMsg(move));
             WaitingForResponse = true;  
+        }
+
+        private async Task<int> getDimension()
+        {
+            await Task.Factory.StartNew(() => {
+                while (!Comunicator.IsMsgAvailable()) {
+                    Thread.Sleep(100);
+                }
+            });
+            var msg = Comunicator.Receive();
+            if (msg.Kind == MessageKind.Dimension) {
+                return msg.Dimension;
+            }
+            else {
+                throw new ArgumentException("First message should share dimension, but was type " + msg.GetType());
+            }
         }
 
         private async Task connectOtherPlayer()
@@ -178,12 +188,13 @@ namespace piskworks
             var client = new TcpClient();
             IPAddress ipAddress = null;
             var hasAddress = false;
-            while (!hasAddress) {
-                Console.WriteLine("Write IP address of host player:");
-                var addressStr = Console.ReadLine();
-                hasAddress = IPAddress.TryParse(addressStr, out ipAddress);
-            }
-            await client.ConnectAsync(ipAddress, _port);
+            // while (!hasAddress) {
+            //     Console.WriteLine("Write IP address of host player:");
+            //     var addressStr = Console.ReadLine();
+            //     hasAddress = IPAddress.TryParse(addressStr, out ipAddress);
+            // }
+            ipAddress = Dns.GetHostAddresses("localhost")[0];
+            await client.ConnectAsync(ipAddress, PORT);
             Comunicator = new ComunicatorTcp(client);
             Comunicator.StartComunication();
         }
@@ -249,7 +260,7 @@ namespace piskworks
         private async void doSend()
         {
             var msg = _sendQueue.Dequeue();
-            var msgText = JsonSerializer.Serialize(msg);
+            var msgText = JsonSerializer.Serialize<MessageObject>(msg);
             await _writer.WriteLineAsync(msgText);
             await _writer.FlushAsync();
         }
@@ -329,12 +340,13 @@ namespace piskworks
     public class TestComunicator : IComunicator
     {
         private int i = 0;
-        public List<MoveMsgObject> _testMoves = new List<MoveMsgObject> {
-            new MoveMsgObject(new GameMove(1, 0, 0, SymbolKind.Nought)),
-            new MoveMsgObject(new GameMove(1, 1, 0, SymbolKind.Nought)),
-            new MoveMsgObject(new GameMove(1, 2, 0, SymbolKind.Nought)),
-            new MoveMsgObject(new GameMove(1, 3, 0, SymbolKind.Nought))
-        };
+        public List<MessageObject> _testMoves = new List<MessageObject>();
+        // ToDo: repair test move objects
+        //     {new MoveMsgObject(new GameMove(1, 0, 0, SymbolKind.Nought)),
+        //     new MoveMsgObject(new GameMove(1, 1, 0, SymbolKind.Nought)),
+        //     new MoveMsgObject(new GameMove(1, 2, 0, SymbolKind.Nought)),
+        //     new MoveMsgObject(new GameMove(1, 3, 0, SymbolKind.Nought))
+        // };
         public void Send(MessageObject msg)
         {
         }

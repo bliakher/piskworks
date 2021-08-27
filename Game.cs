@@ -76,12 +76,6 @@ namespace piskworks
         public void TransitionFromDimension(int dimension)
         {
             CreateBoard(dimension);
-            // var server = new Server(dimension);
-            // var serverSend = new ThreadSafeQueue<MessageObject>();
-            // var serverReceive = new ThreadSafeQueue<MessageObject>();
-            // server.InitializeHostComunicator(serverSend, serverReceive);
-            // var t = new Thread(server.Run);
-            // t.Start();
             Player = new HostPlayer(this);
             Player.Start();
         }
