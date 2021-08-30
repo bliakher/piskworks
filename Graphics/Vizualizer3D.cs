@@ -9,7 +9,6 @@ namespace piskworks
         private GameBoard _board;
         private Game _game;
         private Camera _camera;
-        private Matrix _world;
         private float _rotationAngleZ;
         private float _rotationAngleX;
 
@@ -20,38 +19,68 @@ namespace piskworks
             _board = board;
             //_board.FillForTesting();
             _game = game;
-            var view = Matrix.CreateLookAt(new Vector3(0, 0, 10), new Vector3(0, 0, 0), new Vector3(0, 0, 1));
-            var projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45), 800f / 480f, 0.01f, 100f);
-            _camera = new Camera(view, projection);
-            _world = Matrix.CreateTranslation(new Vector3(0, 0, 0));
         }
 
-        public void Draw(GameTime gameTime)
+        public void Draw()
         {
+            Draw3DVizualization();
+        }
+        
+
+        public void Draw3DVizualization()
+        {
+            drawBoardLines();
+            DrawNoughts();
+        }
+
+        public void UpdateView(float rotateX, float rotateY)
+        {
+            // ToDo: fix left and right rotation, add up and down rotation
             
+            // view matrix makes the cube the center of the screen 
+            // camera position - far enough that the cube fits the screen
+            // target - center of the cube
+            // up - z axis
+            var center = getBoardCenter();
+            var cameraPos = _camera?.CameraPosition ?? new Vector3(0, 7, -5);
+            cameraPos = Vector3.Transform(cameraPos, getRotationZ(rotateX));
+            var view = Matrix.CreateLookAt(cameraPos, center, new Vector3(0, 1, 0));
+            // projection - perspective with aspect ratio of the viewport
+            var viewport = _game.GraphicsDevice.Viewport;
+            var projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45), 
+                viewport.Width / (float)viewport.Height, 0.01f, 100f);
+            // make the cube smaller
+            var scaleDown = Matrix.CreateScale(0.5f);
+            // move down from the center - on y axis in screen space
+            var moveDown = Matrix.CreateTranslation(new Vector3(0, -0.4f, 0));
+            // additional changes applied after the projection - multiplied from right
+            projection = projection * scaleDown * moveDown;
+            _camera = new Camera(cameraPos, view, projection);
         }
 
-        public void DrawBoard()
+        private Matrix getRotationZ(float rotationPercentage)
         {
+            var maxRotation = 90;
+            var rotation = maxRotation * rotationPercentage;
+            return Matrix.CreateRotationZ(MathHelper.ToRadians(rotation));
+        }
+
+        // center in the vertex buffer from CreateBoardLines()
+        // one corner is at (0,0,0) and the oposite at (N, N, N)
+        // where N is the dimension of the board
+        private Vector3 getBoardCenter()
+        {
+            return new Vector3(_board.N / 2f, _board.N / 2f, _board.N / 2f);
+        }
+        
+        private void drawBoardLines()
+        {
+            var (vertices, indices) = CreateBoardLines();
+            var vertexBuffer = GetVertexBuffer(vertices);
+            var indexBuffer = GetIndexBuffer(indices);
             
-        }
-
-        public void Draw3DVizualization(GameTime gameTime)
-        {
-            _rotationAngleZ = GetRotationFromTime(gameTime);
-            UpdateView(gameTime);
-            DrawBoardLines(gameTime);
-            DrawNoughts(gameTime);
-            DrawCrosses(gameTime);
-        }
-
-        public void UpdateView(GameTime gameTime)
-        {
-            var toBoardCenter = Matrix.CreateTranslation(new Vector3(_board.N / 2, _board.N / 2, _board.N / 2));
-            var rotationZ = Matrix.CreateRotationZ(_rotationAngleZ);
-            var rotationX = Matrix.CreateRotationX(_rotationAngleX);
-            var lookAt = Matrix.CreateLookAt(new Vector3(0, 0, 10), new Vector3(0, 0, 0), new Vector3(0, 0, 1));
-            _camera.View = toBoardCenter * rotationZ * rotationX * lookAt;
+            var world = Matrix.CreateTranslation(new Vector3(0, 0, 0)); // cube is the world - it isn't moved in the world
+            DrawVertexIndexBuffer(vertexBuffer, indexBuffer, world, _camera.View, _camera.Projection);
         }
 
         private void DrawVertexIndexBuffer(VertexBuffer vertices, IndexBuffer indices, Matrix world, Matrix view, Matrix projection)
@@ -96,22 +125,17 @@ namespace piskworks
             //return Matrix.CreateRotationY(MathHelper.ToRadians(gameTime.TotalGameTime.Seconds % 360));
             return MathHelper.ToRadians(gameTime.TotalGameTime.Seconds % 360);
         }
-        
-        private void DrawBoardLines(GameTime gameTime)
-        {
-            var (vertices, indices) = CreateBoardLines();
-            var vertexBuffer = GetVertexBuffer(vertices);
-            var indexBuffer = GetIndexBuffer(indices);
-            
-            DrawVertexIndexBuffer(vertexBuffer, indexBuffer, _world, _camera.View, _camera.Projection);
-        }
 
-        private void DrawNoughts(GameTime gameTime)
+        private void DrawNoughts()
         {
             var (vertices, indices) = CreateNought();
             var vertexBuffer = GetVertexBuffer(vertices);
             var indexBuffer = GetIndexBuffer(indices);
-            DrawSymbols(gameTime, vertexBuffer, indexBuffer, SymbolKind.Nought);
+            
+            var world = Matrix.CreateTranslation(new Vector3(0, 0, 0));
+            DrawVertexIndexBuffer(vertexBuffer, indexBuffer, world, _camera.View, _camera.Projection);
+            
+            //DrawSymbols(gameTime, vertexBuffer, indexBuffer, SymbolKind.Nought);
         }
         private void DrawCrosses(GameTime gameTime)
         {
@@ -201,11 +225,13 @@ namespace piskworks
 
     public class Camera
     {
+        public Vector3 CameraPosition;
         public Matrix View;
         public Matrix Projection;
 
-        public Camera(Matrix view, Matrix projection)
+        public Camera(Vector3 cameraPosition, Matrix view, Matrix projection)
         {
+            CameraPosition = cameraPosition;
             View = view;
             Projection = projection;
         }

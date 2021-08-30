@@ -134,8 +134,8 @@ namespace piskworks
                 if (WasReleased()) {
                     _isPressedDown = false;
                     MovementRegistered = true;
-                    mouseDistanceX = Math.Abs(_mouseStartX - lastMouseState.X);
-                    mouseDistanceY = Math.Abs(_mouseStartY - lastMouseState.Y);
+                    mouseDistanceX = _mouseStartX - lastMouseState.X;
+                    mouseDistanceY = _mouseStartY - lastMouseState.Y;
                     _mouseStartX = -1;
                     _mouseStartY = -1;
                 }
@@ -147,12 +147,13 @@ namespace piskworks
             }
         }
 
-        public (int movX, int movY) GetMouseMovement()
+        public (float movX, float movY) GetMouseMovement()
         {
             if (!MovementRegistered) {
                 return (0,0);
             }
-            return (mouseDistanceX, mouseDistanceY);
+            MovementRegistered = false; // reading is destructive - can read only once
+            return (mouseDistanceX / (float)Width, mouseDistanceY / (float)Height);
         }
     }
 }

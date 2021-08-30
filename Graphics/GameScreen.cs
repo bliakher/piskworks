@@ -45,7 +45,7 @@ namespace piskworks
         protected void DrawButton(Button button, SpriteBatch sb)
         {
             var center = new Vector2(button.X + button.Width / 2, button.Y + button.Height / 2);
-            var buttonColor = button.isHighlighted ? PiskDarkBlue : PiskBlue;
+            var buttonColor = button.IsHighlighted ? PiskDarkBlue : PiskBlue;
                 
             sb.Draw(WhitePixel, new Rectangle(button.X, button.Y, button.Width, button.Height), 
                 WhitePixelSourceRect, buttonColor);
@@ -95,7 +95,7 @@ namespace piskworks
         {
             createOrUpdateButtons();
             foreach (var button in _buttonList) {
-                button.isHighlighted = button.HasMouseOn();
+                button.IsHighlighted = button.HasMouseOn();
                 if (button.WasPresed()) {
                     _game.TransitionFromIntro(button.Kind);
                 }
@@ -163,7 +163,7 @@ namespace piskworks
         {
             createOrUpdateButtons();
             foreach (var button in _buttonList) {
-                button.isHighlighted = button.HasMouseOn();
+                button.IsHighlighted = button.HasMouseOn();
                 if (button.WasPresed()) {
                     _game.TransitionFromDimension(button.Number);
                     break;
@@ -240,6 +240,7 @@ namespace piskworks
         private GameBoard _board;
         private GameField[,,] _fieldList;
         private Button _menuButton;
+        private MouseTracker _tracker;
         
         private bool _itsMyTurn;
 
@@ -260,35 +261,20 @@ namespace piskworks
                 if (field == null) {
                     return;
                 }
-                field.isHighlighted = field.HasMouseOn() && _board.GetSymbol(field.GameX, field.GameY, field.GameZ) == SymbolKind.Free;
+                field.IsHighlighted = field.HasMouseOn() && _board.GetSymbol(field.GameX, field.GameY, field.GameZ) == SymbolKind.Free;
                 if (field.WasPresed()) {
                     _game.Player.DoMove(field.GameX, field.GameY, field.GameZ);
                     return;
                 }
             }
         }
-
         public override void Update(GameTime gameTime)
         {
-            if (_game.IsGameOver) {
-                if (!fieldsMarkedFlag) {
-                    markWinningFields();
-                    fieldsMarkedFlag = true;
-                }
-                updateMenuButton();
-                if (_menuButton.WasPresed()) {
-                    _game.RestartGame();
-                }
-            }
-            else { // normal game play
-                _itsMyTurn = !_game.Player.WaitingForResponse;
-                if (_itsMyTurn) {
-                    checkFields();
-                }
-                else if (_game.Player.Comunicator.IsMsgAvailable()) {
-                    _game.Player.DealWithMsg();
-                }
-            }
+            updateGameBoard();
+            updateMouseTracker();
+            var (movX, movY) = _tracker.GetMouseMovement();
+            _vizualizer.UpdateView(movX, movY);
+
         }
 
         public override void Draw(GameTime gameTime)
@@ -298,26 +284,37 @@ namespace piskworks
             
             _game.GraphicsDevice.Clear(PiskBeige);
 
-            var layerSpacing = viewport.Width / 20;
-            var layersTopLeftOffset = viewport.Height / 10;
-            var layerSide = (viewport.Width - (_board.N - 1) * layerSpacing - layersTopLeftOffset * 2) / _board.N;
-            var fieldSize = layerSide / _board.N;
-
             var textTopOffset = viewport.Height / 30;
             var whosPlayingText = _itsMyTurn ? "It's YOUR turn!" : "Waiting for oponent's move";
             var whoWonText = _game.ThisPlayerWon ? "You WON!" : "You LOST..";
             var displayedText = _game.IsGameOver ? whoWonText : whosPlayingText;
             var textColor = _game.IsGameOver ? PiskRed : PiskBlue;
 
-            SpriteBank bank = _game.SpriteBank;
+            _vizualizer.Draw();
             
             sb.Begin(samplerState: SamplerState.PointClamp);
-            
-            sb.DrawStringCentered(displayedText, new Vector2(viewport.Width / 2, textTopOffset), 2, PiskBlue);
+
+            sb.DrawStringCentered(displayedText, new Vector2(viewport.Width / 2, textTopOffset), 2, textColor);
             if (_game.IsGameOver) {
                 DrawButton(_menuButton, sb);
             }
+            drawGameBoard();
+            drawMouseTracker();
 
+            sb.End();
+        }
+
+        private void drawGameBoard()
+        {
+            var viewport = _game.GraphicsDevice.Viewport;
+            var sb = _game.SpriteBatch;
+            SpriteBank bank = _game.SpriteBank;
+            
+            var layerSpacing = viewport.Width / 20;
+            var layersTopLeftOffset = viewport.Height / 10;
+            var layerSide = (viewport.Width - (_board.N - 1) * layerSpacing - layersTopLeftOffset * 2) / _board.N;
+            var fieldSize = layerSide / _board.N;
+            
             for (int z = 0; z < _board.N; z++) {
 
                 var leftCornerX = layersTopLeftOffset + z * layerSide + z * layerSpacing;
@@ -341,7 +338,7 @@ namespace piskworks
                             fieldHighlight = _fieldList[x, y, z].HasWinningSymbol ? getWinHighlightColor() : Color.White;
                         }
                         else {
-                            fieldHighlight = _fieldList[x, y, z].isHighlighted ? PiskHighlight : Color.White;
+                            fieldHighlight = _fieldList[x, y, z].IsHighlighted ? PiskHighlight : Color.White;
                         }
 
                         var fieldRect = new Rectangle(xScreen, yScreen, fieldSize,
@@ -359,8 +356,16 @@ namespace piskworks
                     }
                 }
             }
+        }
+
+        private void drawMouseTracker()
+        {
+            var sb = _game.SpriteBatch;
+            SpriteBank bank = _game.SpriteBank;
+            var highlight = _tracker.IsHighlighted ? PiskRed : Color.White;
             
-            sb.End();
+            sb.Draw(bank.Border.Texture, new Rectangle(_tracker.X, _tracker.Y, _tracker.Width, _tracker.Height),
+                bank.Border.SourceRect, highlight);
         }
         private void markWinningFields()
         {
@@ -398,6 +403,46 @@ namespace piskworks
             }
             else {
                 _menuButton.UpdateData(screenX, screenY, width, height, label);
+            }
+        }
+
+        private void updateMouseTracker()
+        {
+            var viewport = _game.GraphicsDevice.Viewport;
+            var width = viewport.Width / 3;
+            var height = viewport.Height / 2;
+            var offsetTop = viewport.Height / 2  - viewport.Height / 20;
+            var offsetLeft = viewport.Width / 2 - width / 2;
+
+            if (_tracker == null) {
+                _tracker = new MouseTracker(_game, offsetLeft, offsetTop, width, height, null);
+            }
+            else {
+                _tracker.UpdateData(offsetLeft, offsetTop, width, height, null);
+                _tracker.Update();
+            }
+        }
+
+        private void updateGameBoard()
+        {
+            if (_game.IsGameOver) {
+                if (!fieldsMarkedFlag) {
+                    markWinningFields();
+                    fieldsMarkedFlag = true;
+                }
+                updateMenuButton();
+                if (_menuButton.WasPresed()) {
+                    _game.RestartGame();
+                }
+            }
+            else { // normal game play
+                _itsMyTurn = !_game.Player.WaitingForResponse;
+                if (_itsMyTurn) {
+                    checkFields();
+                }
+                else if (_game.Player.Comunicator.IsMsgAvailable()) {
+                    _game.Player.DealWithMsg();
+                }
             }
         }
     }
