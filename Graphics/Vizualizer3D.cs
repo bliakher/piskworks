@@ -13,6 +13,9 @@ namespace piskworks
         private float _rotationAngleX;
 
         private const float lineThickness = 0.02f;
+        private VertexBuffer _boardLinesVertices;
+        private IndexBuffer _boardLinesIndices;
+        
 
         public Vizualizer3D(GameBoard board, Game game)
         {
@@ -75,12 +78,13 @@ namespace piskworks
         
         private void drawBoardLines()
         {
-            var (vertices, indices) = CreateBoardLines();
-            var vertexBuffer = GetVertexBuffer(vertices);
-            var indexBuffer = GetIndexBuffer(indices);
-            
+            if (_boardLinesVertices == null || _boardLinesIndices == null) {
+                var (vertices, indices) = CreateBoardLines();
+                _boardLinesVertices = GetVertexBuffer(vertices);
+                _boardLinesIndices = GetIndexBuffer(indices);
+            }
             var world = Matrix.CreateTranslation(new Vector3(0, 0, 0)); // cube is the world - it isn't moved in the world
-            DrawVertexIndexBuffer(vertexBuffer, indexBuffer, world, _camera.View, _camera.Projection);
+            DrawVertexIndexBuffer(_boardLinesVertices, _boardLinesIndices, world, _camera.View, _camera.Projection);
         }
 
         private void DrawVertexIndexBuffer(VertexBuffer vertices, IndexBuffer indices, Matrix world, Matrix view, Matrix projection)

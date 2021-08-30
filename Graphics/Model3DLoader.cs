@@ -66,7 +66,7 @@ namespace piskworks
                 }
                 else if (segments[0] == "f") { // face - 3 vertex indexes - f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3
                     for (int i = 1; i < 4; i++) {
-                        var indexTriplet = segments[i].Split();
+                        var indexTriplet = segments[i].Split("/");
                         var index = Int32.Parse(indexTriplet[0]);
                         indices.Add(index);
                     }

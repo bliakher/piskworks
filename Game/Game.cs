@@ -53,6 +53,8 @@ namespace piskworks
             GraphicUtils.Font = FontLoader.CreateFont(fontTexture);
             Texture2D sourceTexture = Content.Load<Texture2D>("piskworks_new");
             SpriteBank = new SpriteBank(sourceTexture);
+            var loader = new Model3DLoader("Content/piskworks.obj", GraphicsDevice);
+            var models = loader.Load();
         }
 
         public void RestartGame()
