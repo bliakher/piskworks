@@ -10,16 +10,16 @@ namespace piskworks
         private GraphicsDeviceManager _graphics;
         public SpriteBatch SpriteBatch;
         public SpriteBank SpriteBank;
-        
+
         public Player Player { get; private set; }
         public GameBoard Board { get; private set; }
-        
         public bool IsGameOver { get; set; }
         public bool ThisPlayerWon { get; set; }
         
         private HostingKind _hostingKind;
         private GameScreen _currentScreen;
-        
+
+        public Vizualizer3D Vizualizer;
 
         public Game()
         {
@@ -36,7 +36,12 @@ namespace piskworks
 
             Window.AllowUserResizing = true;
 
-            _currentScreen = new IntroScreen(this);
+            //_currentScreen = new IntroScreen(this);
+            Board = new GameBoard(4);
+            Player = new HostPlayer(this);
+            _currentScreen = new PlayScreen(this, Board, true);
+
+            Vizualizer = new Vizualizer3D(new GameBoard(4), this);
             
             base.Initialize();
         }
@@ -46,9 +51,8 @@ namespace piskworks
             SpriteBatch = new SpriteBatch(GraphicsDevice);
             Texture2D fontTexture = Content.Load<Texture2D>("spritefont");
             GraphicUtils.Font = FontLoader.CreateFont(fontTexture);
-            Texture2D sourceTexture = Content.Load<Texture2D>("piskworks");
+            Texture2D sourceTexture = Content.Load<Texture2D>("piskworks_new");
             SpriteBank = new SpriteBank(sourceTexture);
-
         }
 
         public void RestartGame()
@@ -70,9 +74,7 @@ namespace piskworks
             else {
                 _currentScreen = new DimensionScreen(this);
             }
-            
         }
-
         public void TransitionFromDimension(int dimension)
         {
             CreateBoard(dimension);
@@ -94,8 +96,6 @@ namespace piskworks
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-
-            // TODO: Add your update logic here
             
             _currentScreen.Update(gameTime);
 
@@ -106,7 +106,7 @@ namespace piskworks
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             
-            //Viewer.Draw3DVizualization(gameTime);
+            //Vizualizer.Draw(null);
             
             _currentScreen.Draw(gameTime);
             

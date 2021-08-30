@@ -15,10 +15,7 @@ namespace piskworks
         public GameMove Move { get; set; }
         public bool IsWinning { get; set; }
         
-        public MessageObject()
-        {
-        }
-        public static MessageObject CreateMoveMsg(GameMove move, bool isWinning)
+        public static MessageObject CreateMoveMsg(GameMove move, bool isWinning = false)
         {
             return new MessageObject() {Kind = MessageKind.Move, Dimension = -1, Move = move, IsWinning = isWinning};
         }
