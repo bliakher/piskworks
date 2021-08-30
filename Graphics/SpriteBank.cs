@@ -41,6 +41,7 @@ namespace piskworks
         public Sprite GameField;
         public Sprite Cross;
         public Sprite Nought;
+        public Sprite Border;
 
         public SpriteBank(Texture2D sourceTexture)
         {
@@ -49,6 +50,7 @@ namespace piskworks
             GameField = new Sprite() {Texture = SourceTexture, SourceRect = new Rectangle(0, 0, 32, 32)};
             Cross = new Sprite() {Texture = SourceTexture, SourceRect = new Rectangle(32, 0, 32, 32)};
             Nought = new Sprite() {Texture = SourceTexture, SourceRect = new Rectangle(64, 0, 32, 32)};
+            Border = new Sprite() {Texture = SourceTexture, SourceRect = new Rectangle(96, 0, 32, 32)};
         }
     }
 }
