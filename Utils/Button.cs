@@ -1,21 +1,21 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace piskworks
 {
-    public class Button : DrawableGameComponent
+    public class Button
     {
         public int X { get; private set; }
         public int Y { get; private set;}
         public int Width { get; private set;}
         public int Height { get; private set;}
         public string Label { get; private set;}
-        public bool isHighlighted { get; set; }
+        public bool IsHighlighted { get; set; }
         public Texture2D Texture { get; private set;}
-        private Game Game;
         
-        private MouseState lastMouseState;
+        protected MouseState lastMouseState;
 
         public void UpdateData(int x, int y, int width, int height, string label)
         {
@@ -26,16 +26,15 @@ namespace piskworks
             Label = label;
         }
 
-        public Button(Game game, int x, int y, int width, int height, string label, Texture2D texture = null) : base(game)
+        public Button(Game game, int x, int y, int width, int height, string label, Texture2D texture = null)
         {
             X = x;
             Y = y;
             Width = width;
             Height = height;
             Texture = texture;
-            Game = game;
             Label = label;
-            isHighlighted = false;
+            IsHighlighted = false;
             
         }
 
@@ -60,6 +59,19 @@ namespace piskworks
             lastMouseState = mouse;
             return pressed;
         }
+
+        public bool WasReleased()
+        {
+            var released = false;
+            var mouse = Mouse.GetState();
+            if (HasMouseOn()) {
+                if (lastMouseState.LeftButton == ButtonState.Pressed && mouse.LeftButton == ButtonState.Released) {
+                    released = true;
+                }
+            }
+            lastMouseState = mouse;
+            return released;
+        }
         
     }
 
@@ -78,12 +90,6 @@ namespace piskworks
             GameZ = gamePosZ;
             HasWinningSymbol = false;
         }
-        
-        public override void Update(GameTime gameTime)
-        {
-            
-        }
-        
     }
 
     public class HostingButton : Button
@@ -101,6 +107,52 @@ namespace piskworks
         public NumberButton(Game game, int x, int y, int width, int height, string label, int number, Texture2D texture = null) : base(game, x, y, width, height, label, texture)
         {
             Number = number;
+        }
+    }
+
+    public class MouseTracker : Button
+    {
+        private int _mouseStartX;
+        private int _mouseStartY;
+        private bool _isPressedDown;
+
+        private int mouseDistanceX;
+        private int mouseDistanceY;
+        public bool MovementRegistered { get; private set; }
+
+        public MouseTracker(Game game, int x, int y, int width, int height, string label, Texture2D texture = null) : base(game, x, y, width, height, label, texture)
+        {
+            _mouseStartX = -1;
+            _mouseStartY = -1;
+            _isPressedDown = false;
+        }
+
+        public void Update()
+        {
+            IsHighlighted = HasMouseOn();
+            if (_isPressedDown) {
+                if (WasReleased()) {
+                    _isPressedDown = false;
+                    MovementRegistered = true;
+                    mouseDistanceX = Math.Abs(_mouseStartX - lastMouseState.X);
+                    mouseDistanceY = Math.Abs(_mouseStartY - lastMouseState.Y);
+                    _mouseStartX = -1;
+                    _mouseStartY = -1;
+                }
+            }
+            else if (WasPresed()) {
+                _isPressedDown = true;
+                _mouseStartX = lastMouseState.X;
+                _mouseStartY = lastMouseState.Y;
+            }
+        }
+
+        public (int movX, int movY) GetMouseMovement()
+        {
+            if (!MovementRegistered) {
+                return (0,0);
+            }
+            return (mouseDistanceX, mouseDistanceY);
         }
     }
 }
