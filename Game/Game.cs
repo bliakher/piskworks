@@ -35,8 +35,6 @@ namespace piskworks
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
             Window.AllowUserResizing = true;
 
             _currentScreen = new IntroScreen(this);
@@ -66,10 +64,20 @@ namespace piskworks
             IsGameOver = false;
             ThisPlayerWon = false;
             Board = null;
+            Player.Stop();
             Player = null;
             _currentScreen = new IntroScreen(this);
         }
 
+        public void QuitGame(bool youQuit)
+        {
+            if (youQuit) {
+                SetCurScreen(new MessageScreen(this, "You quit the game."));
+            }
+            else {
+                SetCurScreen(new MessageScreen(this, "The other user quit the game."));
+            }
+        }
         public void TransitionFromIntro(HostingKind hostingKind)
         {
             _hostingKind = hostingKind;

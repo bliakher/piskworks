@@ -35,6 +35,7 @@ namespace piskworks
         public abstract void DealWithMsg();
         public abstract void DoMove(int x, int y, int z);
         public abstract void Start();
+        public abstract void Stop();
         
         public void InitializeComunicator(ThreadSafeQueue<MessageObject> sendQueue,
             ThreadSafeQueue<MessageObject> receiveQueue)
@@ -48,35 +49,69 @@ namespace piskworks
             _game.ThisPlayerWon = thisPlayerWon;
         }
 
+        public void AnnounceQuitingGame()
+        {
+            Comunicator.Send(MessageObject.CreateGameOverMsg(false));
+        }
+
     }
 
     public class HostPlayer : Player
     {
+        private TcpListener _listener;
+        private bool _listening;
         public HostPlayer(Game game) : base(game)
         {
             PlayerSymbol = SymbolKind.Cross;
             //Comunicator = new TestComunicator();
+            _listening = false;
         }
         
         public override async void Start()
         {
-            _game.SetCurScreen(new WaitScreen(_game));
-            await connectOtherPlayer(); // ToDo: react to possible exceptions
+            var cancelationTokenSource = new CancellationTokenSource();
+            var cancelationToken = cancelationTokenSource.Token;
+            _game.SetCurScreen(new MessageScreen(_game, null, () => cancelationTokenSource.Cancel()));
+            var connectTask = Task.Run(connectOtherPlayer, cancelationToken); // ToDo: react to possible exceptions
+            try {
+                await connectTask;
+            }
+            catch (OperationCanceledException e) {
+                _listener.Stop();
+                _listener = null;
+            }
             shareDimension();
             _game.SetCurScreen(new PlayScreen(_game, _game.Board, true));
             WaitingForResponse = false;
         }
 
+        public override void Stop()
+        {
+            if (_listening) {
+                //_listener.Stop();
+            }
+            Comunicator?.EndComunication();
+        }
+
         private async Task connectOtherPlayer()
         {
-            var listener = new TcpListener(IPAddress.Any, PORT);
-            listener.Start();
-            Console.WriteLine($"listening on port {PORT}");
-            var client = await listener.AcceptTcpClientAsync();
-            Console.WriteLine("connected");
-            listener.Stop();
-            Comunicator = new ComunicatorTcp(client);
-            Comunicator.StartComunication();
+            try {
+                _listener = new TcpListener(IPAddress.Any, PORT);
+                _listener.Start();
+                _listening = true;
+                Console.WriteLine($"listening on port {PORT}");
+                var client = await _listener.AcceptTcpClientAsync();
+                Console.WriteLine("connected");
+                //_listener.Stop();
+                _listening = false;
+                Comunicator = new ComunicatorTcp(client);
+                Comunicator.StartComunication();
+            }
+            finally {
+                _listener.Stop();
+                _listener = null;
+            }
+            
         }
 
         private void shareDimension()
@@ -90,6 +125,10 @@ namespace piskworks
             if (msg.Kind == MessageKind.Move) {
                 dealWithMove(msg.Move);
             }
+            else if (msg.Kind == MessageKind.GameOver && !msg.IsWinning) {
+                // game was quit by the other user
+                _game.QuitGame(false);
+            }
         }
 
         private void dealWithMove(GameMove move)
@@ -99,7 +138,7 @@ namespace piskworks
                 _game.Board.DoMove(move);
                 if (_game.Board.CheckForWin(move.Symbol)) {
                     // other player had the winning move
-                    Comunicator.Send(MessageObject.CreateGameOverMsg());
+                    Comunicator.Send(MessageObject.CreateGameOverMsg(true));
                     AnnounceWinner(thisPlayerWon: false);
                 }
                 WaitingForResponse = false;
@@ -135,13 +174,19 @@ namespace piskworks
 
         public override async void Start()
         {
-            _game.SetCurScreen(new WaitScreen(_game));
+            _game.SetCurScreen(new MessageScreen(_game));
             await connectOtherPlayer(); // ToDo: react to possible exceptions
             var dimension = await getDimension();
             _game.CreateBoard(dimension);
             _game.SetCurScreen(new PlayScreen(_game, _game.Board, false));
             WaitingForResponse = true;
         }
+
+        public override void Stop()
+        {
+            Comunicator?.EndComunication();
+        }
+
         public override void DealWithMsg()
         {
             var msg = Comunicator.Receive();
@@ -155,8 +200,15 @@ namespace piskworks
                 WaitingForResponse = false;
             }
             else if (msg.Kind == MessageKind.GameOver) {
-                _game.Board.CheckForWin(PlayerSymbol);
-                AnnounceWinner(true);
+                if (msg.IsWinning) {
+                    _game.Board.CheckForWin(PlayerSymbol);
+                    AnnounceWinner(true);
+                }
+                else {
+                    // game was quit by the other user
+                    _game.QuitGame(false);
+                }
+                
             }
         }
 
@@ -195,7 +247,16 @@ namespace piskworks
                 hasAddress = IPAddress.TryParse(addressStr, out ipAddress);
             }
             //ipAddress = Dns.GetHostAddresses("localhost")[0];
-            client.Connect(ipAddress, PORT);
+            var notConnected = true;
+            while (notConnected) {
+                try {
+                    await client.ConnectAsync(ipAddress, PORT);
+                    notConnected = false;
+                }
+                catch (SocketException e) {
+                }
+            }
+            
             Comunicator = new ComunicatorTcp(client);
             Comunicator.StartComunication();
         }

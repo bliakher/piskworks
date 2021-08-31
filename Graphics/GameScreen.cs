@@ -49,7 +49,7 @@ namespace piskworks
                 
             sb.Draw(WhitePixel, new Rectangle(button.X, button.Y, button.Width, button.Height), 
                 WhitePixelSourceRect, buttonColor);
-            sb.DrawStringCentered(button.Label, center, 2, Color.White);
+            sb.DrawStringCentered(button.Label, center, 3, Color.White);
         }
 
     }
@@ -112,8 +112,8 @@ namespace piskworks
             sb.Begin(samplerState: SamplerState.PointClamp);
 
             var logoOffset = viewPort.Height / 7;
-            sb.DrawStringCentered("PISK", new Vector2(viewPort.Width / 2, viewPort.Height / 3), 8, PiskRed);
-            sb.DrawStringCentered("WORKS", new Vector2(viewPort.Width / 2, viewPort.Height / 3 + logoOffset), 6, PiskBlue);
+            sb.DrawStringCentered("PISK", new Vector2(viewPort.Width / 2, viewPort.Height / 3), 11, PiskRed);
+            sb.DrawStringCentered("WORKS", new Vector2(viewPort.Width / 2, viewPort.Height / 3 + logoOffset), 9, PiskBlue);
 
             DrawButtons(_buttonList, sb);
             
@@ -179,34 +179,37 @@ namespace piskworks
             var sb = _game.SpriteBatch;
 
             sb.Begin(samplerState: SamplerState.PointClamp);
-            sb.DrawStringCentered("Choose dimension:", new Vector2(viewPort.Width / 2, viewPort.Height / 5), 2, PiskBlue);
+            sb.DrawStringCentered("Choose dimension:", new Vector2(viewPort.Width / 2, viewPort.Height / 5), 4, PiskBlue);
             DrawButtons(_buttonList, sb);
             sb.End();
         }
     }
 
-    public class WaitScreen : GameScreen
+    public class MessageScreen : GameScreen
     {
-        private const string msg = "Waiting for the other player to connect..";
+        private string _message;
         private Button _cancelButton;
-        public WaitScreen(Game game) : base(game)
+        private Action _onCancelCallback;
+        public MessageScreen(Game game, string message = null, Action onCancelCallback = null) : base(game)
         {
+            _message = message ?? "Waiting for the other player to connect..";
             createOrUpdateButtons(true);
+            _onCancelCallback = onCancelCallback;
         }
 
         private void createOrUpdateButtons(bool create = false)
         {
             var viewport = _game.GraphicsDevice.Viewport;
             var centedWidth = viewport.Width / 2;
-            var buttonWidth = viewport.Width / 7;
-            var buttonHeight = viewport.Height / 10;
-            var buttonLabel = "Cancel";
+            var buttonWidth = viewport.Width / 4;
+            var buttonHeight = viewport.Height / 12;
+            var buttonLabel = "Back to menu";
             
             if (create) {
-                _cancelButton = new Button(_game, centedWidth - buttonWidth / 2, 2 * viewport.Height / 3, buttonWidth,
+                _cancelButton = new Button(_game, centedWidth - buttonWidth / 2, viewport.Height / 3, buttonWidth,
                     buttonHeight, buttonLabel);
             } else {
-                _cancelButton.UpdateData(centedWidth - buttonWidth / 2, 2 * viewport.Height / 3, buttonWidth,
+                _cancelButton.UpdateData(centedWidth - buttonWidth / 2, viewport.Height / 2, buttonWidth,
                     buttonHeight, buttonLabel);
             }
         }
@@ -215,6 +218,7 @@ namespace piskworks
         {
             createOrUpdateButtons();
             if (_cancelButton.WasPresed()) {
+                _onCancelCallback?.Invoke();
                 _game.RestartGame();
             }
         }
@@ -228,7 +232,7 @@ namespace piskworks
             var centedWidth = viewport.Width / 2;
             
             sb.Begin(samplerState: SamplerState.PointClamp);
-            sb.DrawStringCentered(msg, new Vector2(centedWidth, viewport.Height / 2), 2, PiskBlue);
+            sb.DrawStringCentered(_message, new Vector2(centedWidth, viewport.Height / 2), 4, PiskBlue);
             DrawButton(_cancelButton, sb);
             sb.End();
         }
@@ -270,6 +274,18 @@ namespace piskworks
         }
         public override void Update(GameTime gameTime)
         {
+            updateMenuButton();
+            if (_menuButton.WasPresed()) {
+                if (_game.IsGameOver) {
+                    _game.RestartGame();
+                    return;
+                }
+                else {
+                    _game.Player.AnnounceQuitingGame();
+                    _game.QuitGame(true);
+                    return;
+                }
+            }
             updateGameBoard();
             updateMouseTracker();
             var (movX, movY) = _tracker.GetMouseMovement();
@@ -433,11 +449,6 @@ namespace piskworks
                     markWinningFields();
                     fieldsMarkedFlag = true;
                 }
-                updateMenuButton();
-                if (_menuButton.WasPresed()) {
-                    _game.Player.Comunicator.EndComunication();
-                    _game.RestartGame();
-                }
             }
             else { // normal game play
                 _itsMyTurn = !_game.Player.WaitingForResponse;
@@ -449,6 +460,7 @@ namespace piskworks
                 }
             }
         }
+        
     }
     
 }

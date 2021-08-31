@@ -27,11 +27,11 @@ namespace piskworks
                     Move = new GameMove(-1, -1, -1, SymbolKind.Invalid), IsWinning = false};
         }
 
-        public static MessageObject CreateGameOverMsg()
+        public static MessageObject CreateGameOverMsg(bool iswinning)
         {
             return new MessageObject()
             {Kind = MessageKind.GameOver, Dimension = -1, 
-                Move = new GameMove(-1, -1, -1, SymbolKind.Invalid), IsWinning = false};
+                Move = new GameMove(-1, -1, -1, SymbolKind.Invalid), IsWinning = iswinning};
         }
     }
     

@@ -46,6 +46,7 @@ namespace piskworks
         {
             PlaceSybol(0, 0, 0, SymbolKind.Cross);
             PlaceSybol(0, 1, 0, SymbolKind.Cross);
+            PlaceSybol(1, 1, 0, SymbolKind.Nought);
             PlaceSybol(3, 3, 3, SymbolKind.Cross);
             
             PlaceSybol(1, 2, 2, SymbolKind.Nought);
