@@ -1,4 +1,3 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"/Users/evgeniagolubeva/piskworks/Content/kolecko.obj","/Users/evgeniagolubeva/piskworks/Content/bin/DesktopGL/Content/kolecko.xnb","ModelProcessor","ModelContent",8357,10646,1.197243
 "/Users/evgeniagolubeva/piskworks/Content/piskworks_new.png","/Users/evgeniagolubeva/piskworks/Content/bin/DesktopGL/Content/piskworks_new.xnb","TextureProcessor","Texture2DContent",355,16469,0.702277
 "/Users/evgeniagolubeva/piskworks/Content/spritefont.png","/Users/evgeniagolubeva/piskworks/Content/bin/DesktopGL/Content/spritefont.xnb","TextureProcessor","Texture2DContent",874,63589,0.636578

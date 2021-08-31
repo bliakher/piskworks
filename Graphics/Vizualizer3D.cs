@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -9,12 +10,10 @@ namespace piskworks
         private GameBoard _board;
         private Game _game;
         private Camera _camera;
-        private float _rotationAngleZ;
-        private float _rotationAngleX;
 
         private const float lineThickness = 0.02f;
-        private VertexBuffer _boardLinesVertices;
-        private IndexBuffer _boardLinesIndices;
+        private Model3D _boardLines;
+        private BasicEffect _basicEffect;
         
 
         public Vizualizer3D(GameBoard board, Game game)
@@ -22,6 +21,7 @@ namespace piskworks
             _board = board;
             //_board.FillForTesting();
             _game = game;
+            _basicEffect = new BasicEffect(_game.GraphicsDevice);
         }
 
         public void Draw()
@@ -34,6 +34,7 @@ namespace piskworks
         {
             drawBoardLines();
             DrawNoughts();
+            DrawCrosses();
         }
 
         public void UpdateView(float rotateX, float rotateY)
@@ -45,7 +46,7 @@ namespace piskworks
             // target - center of the cube
             // up - z axis
             var center = getBoardCenter();
-            var cameraPos = _camera?.CameraPosition ?? new Vector3(0, 7, -5);
+            var cameraPos = _camera?.CameraPosition ?? new Vector3(2.5f, 7, 8);
             cameraPos = Vector3.Transform(cameraPos, getRotationZ(rotateX));
             var view = Matrix.CreateLookAt(cameraPos, center, new Vector3(0, 1, 0));
             // projection - perspective with aspect ratio of the viewport
@@ -78,22 +79,21 @@ namespace piskworks
         
         private void drawBoardLines()
         {
-            if (_boardLinesVertices == null || _boardLinesIndices == null) {
+            if (_boardLines == null) {
                 var (vertices, indices) = CreateBoardLines();
-                _boardLinesVertices = GetVertexBuffer(vertices);
-                _boardLinesIndices = GetIndexBuffer(indices);
+                _boardLines = new Model3D(_game.GraphicsDevice, vertices, indices);
             }
             var world = Matrix.CreateTranslation(new Vector3(0, 0, 0)); // cube is the world - it isn't moved in the world
-            DrawVertexIndexBuffer(_boardLinesVertices, _boardLinesIndices, world, _camera.View, _camera.Projection);
+            DrawVertexIndexBuffer(_boardLines.VertexBuffer, _boardLines.IndexBuffer, world, _camera.View, _camera.Projection, new Vector3(0,0 ,0));
         }
 
-        private void DrawVertexIndexBuffer(VertexBuffer vertices, IndexBuffer indices, Matrix world, Matrix view, Matrix projection)
+        private void DrawVertexIndexBuffer(VertexBuffer vertices, IndexBuffer indices, Matrix world, Matrix view, Matrix projection, Vector3 color)
         {
-            BasicEffect basicEffect = new BasicEffect(_game.GraphicsDevice);
-            basicEffect.World = world;
-            basicEffect.View = view;
-            basicEffect.Projection = projection;
-            basicEffect.VertexColorEnabled = true;
+            _basicEffect.World = world;
+            _basicEffect.View = view;
+            _basicEffect.Projection = projection;
+            _basicEffect.VertexColorEnabled = true;
+            _basicEffect.DiffuseColor = color;
             
             _game.GraphicsDevice.SetVertexBuffer(vertices);
             _game.GraphicsDevice.Indices = indices;
@@ -102,62 +102,35 @@ namespace piskworks
             rasterizerState.CullMode = CullMode.None;
             _game.GraphicsDevice.RasterizerState = rasterizerState;
             
-            foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
+            foreach (EffectPass pass in _basicEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 _game.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0,0, indices.IndexCount / 3 );
             }
         }
-
-        private VertexBuffer GetVertexBuffer(List<VertexPositionColor> vertices)
-        {
-            VertexBuffer vertexBuffer = new VertexBuffer(_game.GraphicsDevice, typeof(VertexPositionColor), vertices.Count,
-                BufferUsage.WriteOnly);
-            vertexBuffer.SetData(vertices.ToArray());
-            return vertexBuffer;
-        }
-
-        private IndexBuffer GetIndexBuffer(List<int> indices)
-        {
-            IndexBuffer indexBuffer = new IndexBuffer(_game.GraphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Count, BufferUsage.WriteOnly);
-            indexBuffer.SetData(indices.ToArray());
-            return indexBuffer;
-        }
-
-        private float GetRotationFromTime(GameTime gameTime)
-        {
-            //return Matrix.CreateRotationY(MathHelper.ToRadians(gameTime.TotalGameTime.Seconds % 360));
-            return MathHelper.ToRadians(gameTime.TotalGameTime.Seconds % 360);
-        }
+        
 
         private void DrawNoughts()
         {
-            var (vertices, indices) = CreateNought();
-            var vertexBuffer = GetVertexBuffer(vertices);
-            var indexBuffer = GetIndexBuffer(indices);
-            
-            var world = Matrix.CreateTranslation(new Vector3(0, 0, 0));
-            DrawVertexIndexBuffer(vertexBuffer, indexBuffer, world, _camera.View, _camera.Projection);
-            
-            //DrawSymbols(gameTime, vertexBuffer, indexBuffer, SymbolKind.Nought);
+            DrawSymbols(_game.Nougth, SymbolKind.Nought);    
         }
-        private void DrawCrosses(GameTime gameTime)
+        private void DrawCrosses()
         {
-            var (vertices, indices) = CreateCross();
-            var vertexBuffer = GetVertexBuffer(vertices);
-            var indexBuffer = GetIndexBuffer(indices);
-            DrawSymbols(gameTime, vertexBuffer, indexBuffer, SymbolKind.Cross);
+            DrawSymbols(_game.Cross, SymbolKind.Cross);
         }
 
-        private void DrawSymbols(GameTime gameTime, VertexBuffer vertexBuffer, IndexBuffer indexBuffer,
+        private void DrawSymbols(Model3D model,
             SymbolKind symbol)
         {
             for (int x = 0; x < _board.N; x++) {
                 for (int y = 0; y < _board.N; y++) {
                     for (int z = 0; z < _board.N; z++) {
                         if (_board.GetSymbol(x, y, z) == symbol) {
+                            var scaleDown = Matrix.CreateScale(0.5f);
                             var inBoard = Matrix.CreateTranslation(new Vector3(x + 0.5f, y + 0.5f, z + 0.5f));
-                            DrawVertexIndexBuffer(vertexBuffer, indexBuffer, inBoard, _camera.View, _camera.Projection);
+                            var world = scaleDown * inBoard;
+                            DrawVertexIndexBuffer(model.VertexBuffer, model.IndexBuffer, 
+                                world, _camera.View, _camera.Projection, new Vector3(1, 1, 1));
                         }
                     }
                 }
@@ -196,35 +169,7 @@ namespace piskworks
             }
             return (vertices, indices);
         }
-
-        public (List<VertexPositionColor>, List<int>) CreateNought()
-        {
-            Color col = Color.Red;
-
-            var a = new VertexPositionColor(new Vector3(-1 / 3, 0, -1 / 3), col);
-            var b = new VertexPositionColor(new Vector3(1 / 3, 0, -1 / 3), col);
-            var c = new VertexPositionColor(new Vector3(-1 / 3, 0, 1 / 3), col);
-            var d = new VertexPositionColor(new Vector3(1 / 3, 0, 1 / 3), col);
-            
-            List<VertexPositionColor> vertices = new List<VertexPositionColor>(){a, b, c, d};
-            List<int> indices = new List<int>(){0, 1, 2, 1, 2, 3};
-            
-            return (vertices, indices);
-        }
-        public (List<VertexPositionColor>, List<int>) CreateCross()
-        {
-            Color col = Color.Blue;
-
-            var a = new VertexPositionColor(new Vector3(-1 / 3, 0, -1 / 3), col);
-            var b = new VertexPositionColor(new Vector3(1 / 3, 0, -1 / 3), col);
-            var c = new VertexPositionColor(new Vector3(-1 / 3, 0, 1 / 3), col);
-            var d = new VertexPositionColor(new Vector3(1 / 3, 0, 1 / 3), col);
-            
-            List<VertexPositionColor> vertices = new List<VertexPositionColor>(){a, b, c, d};
-            List<int> indices = new List<int>(){0, 1, 2, 1, 2, 3};
-            
-            return (vertices, indices);
-        }
+        
     }
 
     public class Camera

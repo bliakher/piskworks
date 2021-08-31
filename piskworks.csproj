@@ -13,6 +13,7 @@
     <None Remove="Icon.ico" />
     <None Remove="Icon.bmp" />
     <None Remove="Content\piskworks.png" />
+    <None Remove="Content\piskworks.obj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Icon.ico" />

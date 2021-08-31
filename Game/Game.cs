@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -10,6 +11,8 @@ namespace piskworks
         private GraphicsDeviceManager _graphics;
         public SpriteBatch SpriteBatch;
         public SpriteBank SpriteBank;
+        public Model3D Nougth;
+        public Model3D Cross;
 
         public Player Player { get; private set; }
         public GameBoard Board { get; private set; }
@@ -36,12 +39,12 @@ namespace piskworks
 
             Window.AllowUserResizing = true;
 
-            //_currentScreen = new IntroScreen(this);
-            Board = new GameBoard(4);
-            Player = new HostPlayer(this);
-            _currentScreen = new PlayScreen(this, Board, true);
-
-            Vizualizer = new Vizualizer3D(new GameBoard(4), this);
+            _currentScreen = new IntroScreen(this);
+            
+            // Board = new GameBoard(4);
+            // Board.FillForTesting();
+            // Player = new HostPlayer(this);
+            // _currentScreen = new PlayScreen(this, Board, true);
             
             base.Initialize();
         }
@@ -53,8 +56,9 @@ namespace piskworks
             GraphicUtils.Font = FontLoader.CreateFont(fontTexture);
             Texture2D sourceTexture = Content.Load<Texture2D>("piskworks_new");
             SpriteBank = new SpriteBank(sourceTexture);
-            var loader = new Model3DLoader("Content/piskworks.obj", GraphicsDevice);
-            var models = loader.Load();
+            var loader = new Model3DLoader(GraphicsDevice);
+            Nougth = loader.LoadWithColor("Content/kolecko.obj", new Color(167, 29, 38)); // PiskRed
+            Cross = loader.LoadWithColor("Content/krizek.obj", new Color(0, 87, 132)); // PiskBlue
         }
 
         public void RestartGame()
@@ -107,8 +111,6 @@ namespace piskworks
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            
-            //Vizualizer.Draw(null);
             
             _currentScreen.Draw(gameTime);
             
