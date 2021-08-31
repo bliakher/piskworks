@@ -149,11 +149,14 @@ namespace piskworks
             if (msg.Kind == MessageKind.Move) {
                 _game.Board.DoMove(msg.Move);
                 if (msg.IsWinning) {
+                    var oponentSymbol = PlayerSymbol == SymbolKind.Cross ? SymbolKind.Nought : SymbolKind.Cross;
+                    _game.Board.CheckForWin(oponentSymbol);
                     AnnounceWinner(false);
                 }
                 WaitingForResponse = false;
             }
             else if (msg.Kind == MessageKind.GameOver) {
+                _game.Board.CheckForWin(PlayerSymbol);
                 AnnounceWinner(true);
             }
         }
