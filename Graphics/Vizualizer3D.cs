@@ -22,6 +22,7 @@ namespace piskworks
             //_board.FillForTesting();
             _game = game;
             _basicEffect = new BasicEffect(_game.GraphicsDevice);
+            UpdateView(0, 0);
         }
 
         public void Draw()
