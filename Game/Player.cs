@@ -70,7 +70,7 @@ namespace piskworks
         private async Task connectOtherPlayer()
         {
             var ipAddress = Dns.GetHostEntry("localhost").AddressList[0];
-            var listener = new TcpListener(ipAddress, PORT);
+            var listener = new TcpListener(PORT);
             listener.Start();
             Console.WriteLine($"listening on port {PORT}");
             var client = await listener.AcceptTcpClientAsync();
@@ -196,10 +196,9 @@ namespace piskworks
                 hasAddress = IPAddress.TryParse(addressStr, out ipAddress);
             }
             //ipAddress = Dns.GetHostAddresses("localhost")[0];
-            await client.ConnectAsync(ipAddress, PORT);
+            client.Connect(ipAddress, PORT);
             Comunicator = new ComunicatorTcp(client);
             Comunicator.StartComunication();
         }
     }
-    
 }
