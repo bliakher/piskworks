@@ -44,7 +44,6 @@ namespace piskworks
         
         public void AnnounceWinner(bool thisPlayerWon)
         {
-            Comunicator.EndComunication();
             _game.IsGameOver = true;
             _game.ThisPlayerWon = thisPlayerWon;
         }
@@ -97,7 +96,7 @@ namespace piskworks
         private void dealWithMove(GameMove move)
         {
             if (WaitingForResponse) {
-                Console.WriteLine(move.ToString());
+                //Console.WriteLine(move.ToString());
                 _game.Board.DoMove(move);
                 if (_game.Board.CheckForWin(move.Symbol)) {
                     // other player had the winning move

@@ -296,6 +296,7 @@ namespace piskworks
 
             sb.DrawStringCentered(displayedText, new Vector2(viewport.Width / 2, textTopOffset), 2, textColor);
             if (_game.IsGameOver) {
+                updateMenuButton();
                 DrawButton(_menuButton, sb);
             }
             drawGameBoard();
@@ -432,6 +433,7 @@ namespace piskworks
                 }
                 updateMenuButton();
                 if (_menuButton.WasPresed()) {
+                    _game.Player.Comunicator.EndComunication();
                     _game.RestartGame();
                 }
             }

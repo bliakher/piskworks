@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
@@ -66,6 +67,8 @@ namespace piskworks
         private async void doSend()
         {
             var msg = _sendQueue.Dequeue();
+            if (msg.Kind == MessageKind.GameOver) {
+            }
             var msgText = JsonSerializer.Serialize<MessageObject>(msg);
             await _writer.WriteLineAsync(msgText);
             await _writer.FlushAsync();
