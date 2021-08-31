@@ -279,6 +279,8 @@ namespace piskworks
 
         public override void Draw(GameTime gameTime)
         {
+            Update(gameTime); // always update before drawing
+            
             var viewport = _game.GraphicsDevice.Viewport;
             var sb = _game.SpriteBatch;
             
