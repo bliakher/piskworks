@@ -190,12 +190,12 @@ namespace piskworks
             var client = new TcpClient();
             IPAddress ipAddress = null;
             var hasAddress = false;
-            // while (!hasAddress) {
-            //     Console.WriteLine("Write IP address of host player:");
-            //     var addressStr = Console.ReadLine();
-            //     hasAddress = IPAddress.TryParse(addressStr, out ipAddress);
-            // }
-            ipAddress = Dns.GetHostAddresses("localhost")[0];
+            while (!hasAddress) {
+                Console.WriteLine("Write IP address of host player: (IPv6)" );
+                var addressStr = Console.ReadLine();
+                hasAddress = IPAddress.TryParse(addressStr, out ipAddress);
+            }
+            //ipAddress = Dns.GetHostAddresses("localhost")[0];
             await client.ConnectAsync(ipAddress, PORT);
             Comunicator = new ComunicatorTcp(client);
             Comunicator.StartComunication();
