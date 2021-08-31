@@ -126,7 +126,8 @@ namespace piskworks
             for (int x = 0; x < _board.N; x++) {
                 for (int y = 0; y < _board.N; y++) {
                     for (int z = 0; z < _board.N; z++) {
-                        if (_board.GetSymbol(x, y, z) == symbol) {
+                        // ToDo: get rid of quick fix - axes are switched
+                        if (_board.GetSymbol(x, z, y) == symbol) {
                             var scaleDown = Matrix.CreateScale(0.5f);
                             var inBoard = Matrix.CreateTranslation(new Vector3(x + 0.5f, y + 0.5f, z + 0.5f));
                             var world = scaleDown * inBoard;
