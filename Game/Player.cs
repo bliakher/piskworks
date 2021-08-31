@@ -69,8 +69,7 @@ namespace piskworks
 
         private async Task connectOtherPlayer()
         {
-            var ipAddress = Dns.GetHostEntry("localhost").AddressList[0];
-            var listener = new TcpListener(PORT);
+            var listener = new TcpListener(IPAddress.Any, PORT);
             listener.Start();
             Console.WriteLine($"listening on port {PORT}");
             var client = await listener.AcceptTcpClientAsync();
