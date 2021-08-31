@@ -32,9 +32,9 @@ namespace piskworks
 
         public void Draw3DVizualization()
         {
-            drawBoardLines();
             DrawNoughts();
             DrawCrosses();
+            drawBoardLines();
         }
 
         public void UpdateView(float rotateX, float rotateY)
@@ -93,7 +93,7 @@ namespace piskworks
             _basicEffect.View = view;
             _basicEffect.Projection = projection;
             _basicEffect.VertexColorEnabled = true;
-            _basicEffect.DiffuseColor = color;
+            //_basicEffect.DiffuseColor = color;
             
             _game.GraphicsDevice.SetVertexBuffer(vertices);
             _game.GraphicsDevice.Indices = indices;
@@ -162,7 +162,7 @@ namespace piskworks
                 for (int x = 0; x <= _board.N; x++) {
                     var p1 = new Vector3(x, y, 0);
                     var p2 = new Vector3(x, y, _board.N);
-                    var (v, i) = GraphicUtils.MakeStraightLine(p1, p2, lineThickness, Color.Black, vertices.Count);
+                    var (v, i) = GraphicUtils.MakeStraightLine(p1, p2, lineThickness, Color.Red, vertices.Count);
                     vertices.AddRange(v);
                     indices.AddRange(i);
                 }
