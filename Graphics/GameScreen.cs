@@ -142,7 +142,7 @@ namespace piskworks
             var buttonOffsetLeft = (viewPort.Width - buttonWidth ) / 2;
 
             if (create) {
-                for (int i = 3; i <= 6; i++) {
+                for (int i = 3; i <= 5; i++) {
                     var butNum = i - 3;
                     var b = new NumberButton(_game, buttonOffsetLeft, buttonOffsetTop + butNum * buttonHeight + butNum * buttonOffset,
                         buttonWidth, buttonHeight, $"{i} x {i} x {i}", i);
@@ -150,7 +150,7 @@ namespace piskworks
                 }
             }
             else {
-                for (int i = 3; i <= 6; i++) {
+                for (int i = 3; i <= 5; i++) {
                     var butNum = i - 3;
                     _buttonList[butNum].UpdateData(buttonOffsetLeft, buttonOffsetTop + butNum * buttonHeight + butNum * buttonOffset,
                         buttonWidth, buttonHeight, $"{i} x {i} x {i}");
@@ -206,7 +206,7 @@ namespace piskworks
             var buttonLabel = "Back to menu";
             
             if (create) {
-                _cancelButton = new Button(_game, centedWidth - buttonWidth / 2, viewport.Height / 3, buttonWidth,
+                _cancelButton = new Button(_game, centedWidth - buttonWidth / 2, viewport.Height / 2, buttonWidth,
                     buttonHeight, buttonLabel);
             } else {
                 _cancelButton.UpdateData(centedWidth - buttonWidth / 2, viewport.Height / 2, buttonWidth,
@@ -232,7 +232,7 @@ namespace piskworks
             var centedWidth = viewport.Width / 2;
             
             sb.Begin(samplerState: SamplerState.PointClamp);
-            sb.DrawStringCentered(_message, new Vector2(centedWidth, viewport.Height / 2), 4, PiskBlue);
+            sb.DrawStringCentered(_message, new Vector2(centedWidth, viewport.Height / 3), 4, PiskBlue);
             DrawButton(_cancelButton, sb);
             sb.End();
         }
@@ -312,13 +312,12 @@ namespace piskworks
             
             sb.Begin(samplerState: SamplerState.PointClamp);
 
-            sb.DrawStringCentered(displayedText, new Vector2(viewport.Width / 2, textTopOffset), 2, textColor);
-            if (_game.IsGameOver) {
-                updateMenuButton();
-                DrawButton(_menuButton, sb);
-            }
+            sb.DrawStringCentered(displayedText, new Vector2(viewport.Width / 2, textTopOffset), 3, textColor);
+            updateMenuButton();
+            DrawButton(_menuButton, sb);
+            
             drawGameBoard();
-            drawMouseTracker();
+            // drawMouseTracker();
 
             sb.End();
         }
@@ -411,8 +410,8 @@ namespace piskworks
         private void updateMenuButton()
         {
             var viewport = _game.GraphicsDevice.Viewport;
-            var screenX = 2 * viewport.Width / 3;
-            var screenY = viewport.Height / 30;
+            var screenX = 4 * viewport.Width / 5;
+            var screenY = viewport.Height / 35;
             var height = viewport.Height / 20;
             var width = viewport.Width / 8;
             var label = "Menu";

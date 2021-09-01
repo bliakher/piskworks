@@ -72,14 +72,16 @@ namespace piskworks
             var cancelationTokenSource = new CancellationTokenSource();
             var cancelationToken = cancelationTokenSource.Token;
             _game.SetCurScreen(new MessageScreen(_game, null, () => cancelationTokenSource.Cancel()));
-            var connectTask = Task.Run(connectOtherPlayer, cancelationToken); // ToDo: react to possible exceptions
+            var connectTask = Task.Run(() => connectOtherPlayer(cancelationToken), cancelationToken); // ToDo: react to possible exceptions
+            var connected = false;
             try {
                 await connectTask;
+                connected = true;
             }
             catch (OperationCanceledException e) {
                 _listener.Stop();
-                _listener = null;
             }
+            if (!connected) return;
             shareDimension();
             _game.SetCurScreen(new PlayScreen(_game, _game.Board, true));
             WaitingForResponse = false;
@@ -93,25 +95,36 @@ namespace piskworks
             Comunicator?.EndComunication();
         }
 
-        private async Task connectOtherPlayer()
+        private async Task connectOtherPlayer(CancellationToken token)
         {
-            try {
-                _listener = new TcpListener(IPAddress.Any, PORT);
-                _listener.Start();
-                _listening = true;
-                Console.WriteLine($"listening on port {PORT}");
-                var client = await _listener.AcceptTcpClientAsync();
-                Console.WriteLine("connected");
-                //_listener.Stop();
-                _listening = false;
-                Comunicator = new ComunicatorTcp(client);
-                Comunicator.StartComunication();
+            _listener = new TcpListener(IPAddress.Any, PORT);
+            _listener.Start();
+            _listening = true;
+            Console.WriteLine($"listening on port {PORT}");
+            await using (token.Register(() => _listener.Stop())) {
+                try {
+                    var client = await _listener.AcceptTcpClientAsync();
+                    Console.WriteLine("connected");
+                    _listener.Stop();
+                    _listening = false;
+                    Comunicator = new ComunicatorTcp(client);
+                    Comunicator.StartComunication();
+                }
+                catch (InvalidOperationException)
+                {
+                    // Either tcpListener.Start wasn't called (a bug!)
+                    // or the CancellationToken was cancelled before
+                    // we started accepting (giving an InvalidOperationException),
+                    // or the CancellationToken was cancelled after
+                    // we started accepting (giving an ObjectDisposedException).
+                    //
+                    // In the latter two cases we should surface the cancellation
+                    // exception, or otherwise rethrow the original exception.
+                    token.ThrowIfCancellationRequested();
+                    throw;
+                }   
             }
-            finally {
-                _listener.Stop();
-                _listener = null;
-            }
-            
+
         }
 
         private void shareDimension()
@@ -245,6 +258,10 @@ namespace piskworks
                 Console.WriteLine("Write IP address of host player: (IPv6)" );
                 var addressStr = Console.ReadLine();
                 hasAddress = IPAddress.TryParse(addressStr, out ipAddress);
+                if (hasAddress && ipAddress.AddressFamily is AddressFamily.InterNetwork ) {
+                    Console.WriteLine("You entered and address in IPv4, you need to convert it to IPv6");
+                    hasAddress = false;
+                }
             }
             //ipAddress = Dns.GetHostAddresses("localhost")[0];
             var notConnected = true;
