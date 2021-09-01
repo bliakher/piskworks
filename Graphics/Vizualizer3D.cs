@@ -14,7 +14,9 @@ namespace piskworks
         private const float lineThickness = 0.02f;
         private Model3D _boardLines;
         private BasicEffect _basicEffect;
-        
+
+        private float _rotationUpAxis;
+        private const float maxRotation = 90;
 
         public Vizualizer3D(GameBoard board, Game game)
         {
@@ -23,6 +25,7 @@ namespace piskworks
             _game = game;
             _basicEffect = new BasicEffect(_game.GraphicsDevice);
             UpdateView(0, 0);
+            _rotationUpAxis = 0;
         }
 
         public void Draw()
@@ -33,23 +36,29 @@ namespace piskworks
 
         public void Draw3DVizualization()
         {
-            DrawNoughts();
-            DrawCrosses();
+            drawNoughts();
+            drawCrosses();
             drawBoardLines();
         }
 
-        public void UpdateView(float rotateX, float rotateY)
+        public void UpdateView(float rotateVer, float rotateHor)
         {
             // ToDo: fix left and right rotation, add up and down rotation
             
             // view matrix makes the cube the center of the screen 
             // camera position - far enough that the cube fits the screen
             // target - center of the cube
-            // up - z axis
+            // Y is up vector
             var center = getBoardCenter();
-            var cameraPos = _camera?.CameraPosition ?? new Vector3(2.5f, 7, 8);
-            cameraPos = Vector3.Transform(cameraPos, getRotationZ(rotateX));
-            var view = Matrix.CreateLookAt(cameraPos, center, new Vector3(0, 1, 0));
+            var view = Matrix.CreateLookAt(new Vector3(2.5f, 7, 8), center, Vector3.UnitY);
+            // rotate view based on user input
+            updateRotationUp(rotateVer);
+            var cubeCenter = getBoardCenter();
+            var aboveCenter = new Vector3(cubeCenter.X, cubeCenter.Y + 1, cubeCenter.Z); // Z and Y are switched
+            var cubeZAxis = aboveCenter - cubeCenter;
+            var rotation = Matrix.CreateFromAxisAngle(cubeZAxis, MathHelper.ToRadians(_rotationUpAxis));
+            //var rotation = Matrix.CreateRotationY(MathHelper.ToRadians(_rotationUpAxis));
+            view = rotation * view; // rotation must be aplied first
             // projection - perspective with aspect ratio of the viewport
             var viewport = _game.GraphicsDevice.Viewport;
             var projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45), 
@@ -60,14 +69,25 @@ namespace piskworks
             var moveDown = Matrix.CreateTranslation(new Vector3(0, -0.4f, 0));
             // additional changes applied after the projection - multiplied from right
             projection = projection * scaleDown * moveDown;
-            _camera = new Camera(cameraPos, view, projection);
+            _camera = new Camera(view, projection);
         }
 
         private Matrix getRotationZ(float rotationPercentage)
         {
-            var maxRotation = 90;
-            var rotation = maxRotation * rotationPercentage;
-            return Matrix.CreateRotationZ(MathHelper.ToRadians(rotation));
+            var rotationDeg = maxRotation * rotationPercentage;
+            var rotationRad = MathHelper.ToRadians(rotationDeg);
+            var cubeCenter = getBoardCenter();
+            var aboveCenter = new Vector3(cubeCenter.X, cubeCenter.Y , cubeCenter.Z + 1); // Z and Y are switched
+            var cubeZAxis = aboveCenter - cubeCenter;
+            return Matrix.CreateFromAxisAngle(cubeZAxis, rotationRad);
+            //return Matrix.CreateRotationZ(rotationRad);
+        }
+
+        private void updateRotationUp(float rotationPercentage)
+        {
+            var rotationDeg = maxRotation * rotationPercentage;
+            _rotationUpAxis += rotationDeg;
+            _rotationUpAxis %= 360; // keep degrees under 360
         }
 
         // center in the vertex buffer from CreateBoardLines()
@@ -81,20 +101,19 @@ namespace piskworks
         private void drawBoardLines()
         {
             if (_boardLines == null) {
-                var (vertices, indices) = CreateBoardLines();
+                var (vertices, indices) = createBoardLines();
                 _boardLines = new Model3D(_game.GraphicsDevice, vertices, indices);
             }
             var world = Matrix.CreateTranslation(new Vector3(0, 0, 0)); // cube is the world - it isn't moved in the world
-            DrawVertexIndexBuffer(_boardLines.VertexBuffer, _boardLines.IndexBuffer, world, _camera.View, _camera.Projection, new Vector3(0,0 ,0));
+            drawVertexIndexBuffer(_boardLines.VertexBuffer, _boardLines.IndexBuffer, world, _camera.View, _camera.Projection);
         }
 
-        private void DrawVertexIndexBuffer(VertexBuffer vertices, IndexBuffer indices, Matrix world, Matrix view, Matrix projection, Vector3 color)
+        private void drawVertexIndexBuffer(VertexBuffer vertices, IndexBuffer indices, Matrix world, Matrix view, Matrix projection)
         {
             _basicEffect.World = world;
             _basicEffect.View = view;
             _basicEffect.Projection = projection;
             _basicEffect.VertexColorEnabled = true;
-            //_basicEffect.DiffuseColor = color;
             
             _game.GraphicsDevice.SetVertexBuffer(vertices);
             _game.GraphicsDevice.Indices = indices;
@@ -111,35 +130,35 @@ namespace piskworks
         }
         
 
-        private void DrawNoughts()
+        private void drawNoughts()
         {
-            DrawSymbols(_game.Nougth, SymbolKind.Nought);    
+            drawSymbols(_game.Nougth, SymbolKind.Nought);    
         }
-        private void DrawCrosses()
+        private void drawCrosses()
         {
-            DrawSymbols(_game.Cross, SymbolKind.Cross);
+            drawSymbols(_game.Cross, SymbolKind.Cross);
         }
 
-        private void DrawSymbols(Model3D model,
+        private void drawSymbols(Model3D model,
             SymbolKind symbol)
         {
             for (int x = 0; x < _board.N; x++) {
                 for (int y = 0; y < _board.N; y++) {
                     for (int z = 0; z < _board.N; z++) {
-                        // ToDo: get rid of quick fix - axes are switched
+                        // axes are switched - up set to y
                         if (_board.GetSymbol(x, z, y) == symbol) {
                             var scaleDown = Matrix.CreateScale(0.5f);
                             var inBoard = Matrix.CreateTranslation(new Vector3(x + 0.5f, y + 0.5f, z + 0.5f));
                             var world = scaleDown * inBoard;
-                            DrawVertexIndexBuffer(model.VertexBuffer, model.IndexBuffer, 
-                                world, _camera.View, _camera.Projection, new Vector3(1, 1, 1));
+                            drawVertexIndexBuffer(model.VertexBuffer, model.IndexBuffer, 
+                                world, _camera.View, _camera.Projection);
                         }
                     }
                 }
             }
         } 
 
-        public (List<VertexPositionColor>, List<int>) CreateBoardLines()
+        private (List<VertexPositionColor>, List<int>) createBoardLines()
         {
             List<VertexPositionColor> vertices = new List<VertexPositionColor>();
             List<int> indices = new List<int>();
@@ -164,7 +183,7 @@ namespace piskworks
                 for (int x = 0; x <= _board.N; x++) {
                     var p1 = new Vector3(x, y, 0);
                     var p2 = new Vector3(x, y, _board.N);
-                    var (v, i) = GraphicUtils.MakeStraightLine(p1, p2, lineThickness, Color.Red, vertices.Count);
+                    var (v, i) = GraphicUtils.MakeStraightLine(p1, p2, lineThickness, Color.Black, vertices.Count);
                     vertices.AddRange(v);
                     indices.AddRange(i);
                 }
@@ -176,13 +195,11 @@ namespace piskworks
 
     public class Camera
     {
-        public Vector3 CameraPosition;
         public Matrix View;
         public Matrix Projection;
 
-        public Camera(Vector3 cameraPosition, Matrix view, Matrix projection)
+        public Camera(Matrix view, Matrix projection)
         {
-            CameraPosition = cameraPosition;
             View = view;
             Projection = projection;
         }
