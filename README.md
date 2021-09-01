@@ -4,7 +4,7 @@ Multiplayer game of 3D Noughts and Crosses.
 
 ## Rules of the game
 
-Game is played in a cube N x N x N. You can choose dimension from 3 to 6.
+Game is played in a cube N x N x N. You can choose dimension from 3 to 5.
 Players take turns by placing their symbols in the cube-board.
 Your goal is to make a straight line of N symbols in any direction (with all types of diagonals included).
 
