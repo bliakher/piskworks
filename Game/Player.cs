@@ -37,12 +37,6 @@ namespace piskworks
         public abstract void Start();
         public abstract void Stop();
         
-        public void InitializeComunicator(ThreadSafeQueue<MessageObject> sendQueue,
-            ThreadSafeQueue<MessageObject> receiveQueue)
-        {
-            Comunicator = new ComunicatorMock(sendQueue, receiveQueue);
-        }
-        
         public void AnnounceWinner(bool thisPlayerWon)
         {
             _game.IsGameOver = true;

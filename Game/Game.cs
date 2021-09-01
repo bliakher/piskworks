@@ -22,8 +22,6 @@ namespace piskworks
         private HostingKind _hostingKind;
         private GameScreen _currentScreen;
 
-        public Vizualizer3D Vizualizer;
-
         public Game()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -39,7 +37,8 @@ namespace piskworks
 
             _currentScreen = new IntroScreen(this);
             
-            // Board = new GameBoard(4);
+            //for testing
+            // Board = new GameBoard(5);
             // Board.FillForTesting();
             // Player = new HostPlayer(this);
             // _currentScreen = new PlayScreen(this, Board, true);

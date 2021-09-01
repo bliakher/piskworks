@@ -108,44 +108,7 @@ namespace piskworks
             _comunicationEnded = true;
         }
     }
-
-    public class ComunicatorMock : IComunicator
-    {
-        private ThreadSafeQueue<MessageObject> _sendQueue;
-        private ThreadSafeQueue<MessageObject> _receiveQueue;
-
-        public ComunicatorMock(ThreadSafeQueue<MessageObject> sendQueue, ThreadSafeQueue<MessageObject> receiveQueue)
-        {
-            _sendQueue = sendQueue;
-            _receiveQueue = receiveQueue;
-        }
-
-        public void Send(MessageObject msg)
-        {
-            _sendQueue.Enqueue(msg);
-        }
-
-        public MessageObject Receive()
-        {
-            return _receiveQueue.Dequeue();
-        }
-
-        public bool IsMsgAvailable()
-        {
-            return _receiveQueue.Count > 0;
-        }
-
-        public void StartComunication()
-        {
-            // empty operation in mock
-        }
-
-        public void EndComunication()
-        {
-            // empty operation in mock
-        }
-    }
-
+    
     public class TestComunicator : IComunicator
     {
         private int i = 0;
