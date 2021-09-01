@@ -72,7 +72,7 @@ namespace piskworks
             var cancelationTokenSource = new CancellationTokenSource();
             var cancelationToken = cancelationTokenSource.Token;
             _game.SetCurScreen(new MessageScreen(_game, null, () => cancelationTokenSource.Cancel()));
-            var connectTask = Task.Run(() => connectOtherPlayer(cancelationToken), cancelationToken); // ToDo: react to possible exceptions
+            var connectTask = Task.Run(() => connectOtherPlayer(cancelationToken), cancelationToken);
             var connected = false;
             try {
                 await connectTask;
@@ -112,14 +112,6 @@ namespace piskworks
                 }
                 catch (InvalidOperationException)
                 {
-                    // Either tcpListener.Start wasn't called (a bug!)
-                    // or the CancellationToken was cancelled before
-                    // we started accepting (giving an InvalidOperationException),
-                    // or the CancellationToken was cancelled after
-                    // we started accepting (giving an ObjectDisposedException).
-                    //
-                    // In the latter two cases we should surface the cancellation
-                    // exception, or otherwise rethrow the original exception.
                     token.ThrowIfCancellationRequested();
                     throw;
                 }   
@@ -188,7 +180,7 @@ namespace piskworks
         public override async void Start()
         {
             _game.SetCurScreen(new MessageScreen(_game));
-            await connectOtherPlayer(); // ToDo: react to possible exceptions
+            await connectOtherPlayer();
             var dimension = await getDimension();
             _game.CreateBoard(dimension);
             _game.SetCurScreen(new PlayScreen(_game, _game.Board, false));
