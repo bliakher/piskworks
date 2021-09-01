@@ -14,13 +14,18 @@
     <None Remove="Icon.bmp" />
     <None Remove="Content\piskworks.png" />
     <None Remove="Content\piskworks.obj" />
+    <None Remove="TODO.md" />
+    <None Remove="wc" />
+    <None Remove="latex\**" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Icon.ico" />
     <EmbeddedResource Include="Icon.bmp" />
+    <EmbeddedResource Remove="latex\**" />
   </ItemGroup>
   <ItemGroup>
     <MonoGameContentReference Include="Content\Content.mgcb" />
+    <MonoGameContentReference Remove="latex\**" />
   </ItemGroup>
   <ItemGroup>
     <TrimmerRootAssembly Include="Microsoft.Xna.Framework.Content.ContentTypeReader" Visible="false" />
@@ -31,5 +36,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Vizualizer.cs" />
+    <Compile Remove="latex\**" />
   </ItemGroup>
 </Project>
