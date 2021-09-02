@@ -40,8 +40,6 @@ namespace piskworks
             Window.AllowUserResizing = true;
 
             _currentScreen = new IntroScreen(this);
-
-            //_currentScreen = new TextInputScreen(this);
             
             //for testing
             // Board = new GameBoard(5);

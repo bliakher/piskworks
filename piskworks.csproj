@@ -38,4 +38,8 @@
     <Compile Remove="Vizualizer.cs" />
     <Compile Remove="latex\**" />
   </ItemGroup>
+  <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
+    <Copy SourceFiles="Content/kolecko.obj" DestinationFolder="dist/Content" />
+    <Copy SourceFiles="Content/krizek.obj" DestinationFolder="dist/Content" />
+  </Target>
 </Project>
