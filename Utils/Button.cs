@@ -26,7 +26,8 @@ namespace piskworks
             Texture = texture;
             Label = label;
             IsHighlighted = false;
-            
+            lastMouseState = Mouse.GetState();
+
         }
 
         public bool HasMouseOn()

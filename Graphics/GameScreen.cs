@@ -331,10 +331,10 @@ namespace piskworks
             var buttonLabel = "Back to menu";
             
             if (create) {
-                _cancelButton = new Button(_game, centedWidth - buttonWidth / 2, viewport.Height / 2 + 30, buttonWidth,
+                _cancelButton = new Button(_game, centedWidth - buttonWidth / 2, viewport.Height / 2 , buttonWidth,
                     buttonHeight, buttonLabel);
             } else {
-                _cancelButton.UpdateData(centedWidth - buttonWidth / 2, viewport.Height / 2 + 30, buttonWidth,
+                _cancelButton.UpdateData(centedWidth - buttonWidth / 2, viewport.Height / 2 , buttonWidth,
                     buttonHeight);
             }
         }
