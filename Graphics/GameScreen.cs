@@ -50,7 +50,7 @@ namespace piskworks
                 
             sb.Draw(WhitePixel, new Rectangle(button.X, button.Y, button.Width, button.Height), 
                 WhitePixelSourceRect, buttonColor);
-            sb.DrawStringCentered(button.Label, center, 3, Color.White);
+            sb.DrawStringCentered(button.Label, center, 2, Color.White);
         }
 
     }
@@ -180,7 +180,7 @@ namespace piskworks
             var sb = _game.SpriteBatch;
 
             sb.Begin(samplerState: SamplerState.PointClamp);
-            sb.DrawStringCentered("Choose dimension:", new Vector2(viewPort.Width / 2, viewPort.Height / 5), 4, PiskBlue);
+            sb.DrawStringCentered("Choose dimension:", new Vector2(viewPort.Width / 2, viewPort.Height / 5), 3, PiskBlue);
             DrawButtons(_buttonList, sb);
             sb.End();
         }
@@ -286,12 +286,14 @@ namespace piskworks
             var viewport = _game.GraphicsDevice.Viewport;
             var sb = _game.SpriteBatch;
             
+            _game.GraphicsDevice.Clear(PiskBeige);
+            
             sb.Begin(samplerState: SamplerState.PointClamp);
             if (_again) {
-                sb.DrawStringCentered("Please try again", new Vector2(viewport.Width / 2, viewport.Height / 4), 3, PiskBlue);
+                sb.DrawStringCentered("Please try again", new Vector2(viewport.Width / 2, viewport.Height / 4), 2, PiskBlue);
             }
             sb.DrawStringCentered("Enter the host IP address (IPv6)", new Vector2(viewport.Width / 2, viewport.Height / 3),
-                4, PiskBlue);
+                3, PiskBlue);
             
             var center = new Vector2(_textInput.X + _textInput.Width / 2, _textInput.Y + _textInput.Height / 2);
             sb.Draw(WhitePixel, new Rectangle(_textInput.X, _textInput.Y, _textInput.Width, _textInput.Height), 
@@ -355,7 +357,7 @@ namespace piskworks
             var centedWidth = viewport.Width / 2;
             
             sb.Begin(samplerState: SamplerState.PointClamp);
-            sb.DrawStringCentered(_message, new Vector2(centedWidth, viewport.Height / 3), 4, PiskBlue);
+            sb.DrawStringCentered(_message, new Vector2(centedWidth, viewport.Height / 3), 3, PiskBlue);
             DrawButton(_cancelButton, sb);
             sb.End();
         }
