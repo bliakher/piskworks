@@ -331,10 +331,10 @@ namespace piskworks
             var buttonLabel = "Back to menu";
             
             if (create) {
-                _cancelButton = new Button(_game, centedWidth - buttonWidth / 2, viewport.Height / 2, buttonWidth,
+                _cancelButton = new Button(_game, centedWidth - buttonWidth / 2, viewport.Height / 2 + 15, buttonWidth,
                     buttonHeight, buttonLabel);
             } else {
-                _cancelButton.UpdateData(centedWidth - buttonWidth / 2, viewport.Height / 2, buttonWidth,
+                _cancelButton.UpdateData(centedWidth - buttonWidth / 2, viewport.Height / 2 + 15, buttonWidth,
                     buttonHeight);
             }
         }
@@ -437,7 +437,7 @@ namespace piskworks
             
             sb.Begin(samplerState: SamplerState.PointClamp);
 
-            sb.DrawStringCentered(displayedText, new Vector2(viewport.Width / 2, textTopOffset), 3, textColor);
+            sb.DrawStringCentered(displayedText, new Vector2(viewport.Width / 2, textTopOffset), 2, textColor);
             updateMenuButton();
             DrawButton(_menuButton, sb);
             
@@ -575,6 +575,10 @@ namespace piskworks
                 }
             }
             else { // normal game play
+                if (_game.Player == null) {
+                    Console.WriteLine("Player null");
+                    return;
+                }
                 _itsMyTurn = !_game.Player.WaitingForResponse;
                 if (_itsMyTurn) {
                     checkFields();

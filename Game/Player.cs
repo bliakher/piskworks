@@ -183,14 +183,6 @@ namespace piskworks
             WaitingForResponse = true;
         }
 
-        private async void afterConnecting()
-        {
-            var dimension = await getDimension();
-            _game.CreateBoard(dimension);
-            _game.SetCurScreen(new PlayScreen(_game, _game.Board, false));
-            WaitingForResponse = true;
-        }
-
         public override void Stop()
         {
             Comunicator?.EndComunication();
