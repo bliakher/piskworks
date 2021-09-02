@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -19,6 +21,8 @@ namespace piskworks
         public bool IsGameOver { get; set; }
         public bool ThisPlayerWon { get; set; }
         
+        public string PlayerEnteredText { get; set; }
+        
         private HostingKind _hostingKind;
         private GameScreen _currentScreen;
 
@@ -36,6 +40,8 @@ namespace piskworks
             Window.AllowUserResizing = true;
 
             _currentScreen = new IntroScreen(this);
+
+            //_currentScreen = new TextInputScreen(this);
             
             //for testing
             // Board = new GameBoard(5);
@@ -81,8 +87,7 @@ namespace piskworks
         {
             _hostingKind = hostingKind;
             if (_hostingKind == HostingKind.Guest) {
-                Player = new GuestPlayer(this);
-                Player.Start();
+                _currentScreen = new TextInputScreen(this);
             }
             else {
                 _currentScreen = new DimensionScreen(this);
@@ -93,6 +98,20 @@ namespace piskworks
             CreateBoard(dimension);
             Player = new HostPlayer(this);
             Player.Start();
+        }
+
+        public void TransitionFromTextInput(string text)
+        {
+            // check ip adress
+            // try again or start the player
+            var hasAddress = IPAddress.TryParse(text, out var ipAddress);
+            if (hasAddress && !(ipAddress.AddressFamily is AddressFamily.InterNetwork) ) {
+                Player = new GuestPlayer(this, ipAddress); // give him the ip address
+                Player.Start();
+            }
+            else {
+                _currentScreen = new TextInputScreen(this, true);
+            }
         }
 
         public void SetCurScreen(GameScreen newScreen)

@@ -17,15 +17,6 @@ namespace piskworks
         
         protected MouseState lastMouseState;
 
-        public void UpdateData(int x, int y, int width, int height, string label)
-        {
-            X = x;
-            Y = y;
-            Width = width;
-            Height = height;
-            Label = label;
-        }
-
         public Button(Game game, int x, int y, int width, int height, string label, Texture2D texture = null)
         {
             X = x;
@@ -71,6 +62,19 @@ namespace piskworks
             }
             lastMouseState = mouse;
             return released;
+        }
+        
+        public void UpdateData(int x, int y, int width, int height)
+        {
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+        }
+
+        public void UpdateLabel(string newLabel)
+        {
+            Label = newLabel;
         }
         
     }
@@ -155,5 +159,16 @@ namespace piskworks
             MovementRegistered = false; // reading is destructive - can read only once
             return (mouseDistanceX / (float)Width, mouseDistanceY / (float)Height);
         }
+    }
+
+    public class TextInput : Button
+    {
+        public bool InFocus;
+        public TextInput(Game game, int x, int y, int width, int height, string label, Texture2D texture = null) : base(game, x, y, width, height, label, texture)
+        {
+            InFocus = false;
+        }
+
+       
     }
 }

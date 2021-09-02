@@ -165,16 +165,26 @@ namespace piskworks
 
     public class GuestPlayer : Player
     {
+        private IPAddress _hostAddress;
 
-        public GuestPlayer(Game game) : base(game)
+        public GuestPlayer(Game game, IPAddress hostAddress) : base(game)
         {
             PlayerSymbol = SymbolKind.Nought;
+            _hostAddress = hostAddress;
         }
 
         public override async void Start()
         {
             _game.SetCurScreen(new MessageScreen(_game));
-            await connectOtherPlayer();
+            await connectOtherPlayer(_hostAddress);
+            var dimension = await getDimension();
+            _game.CreateBoard(dimension);
+            _game.SetCurScreen(new PlayScreen(_game, _game.Board, false));
+            WaitingForResponse = true;
+        }
+
+        private async void afterConnecting()
+        {
             var dimension = await getDimension();
             _game.CreateBoard(dimension);
             _game.SetCurScreen(new PlayScreen(_game, _game.Board, false));
@@ -235,31 +245,19 @@ namespace piskworks
             }
         }
 
-        private async Task connectOtherPlayer()
+        private async Task connectOtherPlayer(IPAddress ipAddress)
         {
             var client = new TcpClient();
-            IPAddress ipAddress = null;
-            var hasAddress = false;
-            while (!hasAddress) {
-                Console.WriteLine("Write IP address of host player: (IPv6)" );
-                var addressStr = Console.ReadLine();
-                hasAddress = IPAddress.TryParse(addressStr, out ipAddress);
-                if (hasAddress && ipAddress.AddressFamily is AddressFamily.InterNetwork ) {
-                    Console.WriteLine("You entered and address in IPv4, you need to convert it to IPv6");
-                    hasAddress = false;
-                }
-            }
-            //ipAddress = Dns.GetHostAddresses("localhost")[0];
             var notConnected = true;
-            while (notConnected) {
-                try {
-                    await client.ConnectAsync(ipAddress, PORT);
-                    notConnected = false;
-                }
-                catch (SocketException e) {
-                }
-            }
-            
+            // while (notConnected) {
+            //     try {
+            //         await client.ConnectAsync(ipAddress, PORT);
+            //         notConnected = false;
+            //     }
+            //     catch (SocketException e) {
+            //     }
+            // }
+            await client.ConnectAsync(ipAddress, PORT);
             Comunicator = new ComunicatorTcp(client);
             Comunicator.StartComunication();
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -84,9 +85,9 @@ namespace piskworks
                 _buttonList = new List<HostingButton>() {_hostButton, _joinButton};
             }
             else {
-                _hostButton.UpdateData(buttonOffsetLeft, buttonOffsetTop, buttonWidth, buttonHeight, "Host");
+                _hostButton.UpdateData(buttonOffsetLeft, buttonOffsetTop, buttonWidth, buttonHeight);
                 _joinButton.UpdateData(buttonOffsetLeft, buttonOffsetTop + buttonHeight + buttonOffset, 
-                    buttonWidth, buttonHeight, "Join");
+                    buttonWidth, buttonHeight);
             }
            
         }
@@ -153,7 +154,7 @@ namespace piskworks
                 for (int i = 3; i <= 5; i++) {
                     var butNum = i - 3;
                     _buttonList[butNum].UpdateData(buttonOffsetLeft, buttonOffsetTop + butNum * buttonHeight + butNum * buttonOffset,
-                        buttonWidth, buttonHeight, $"{i} x {i} x {i}");
+                        buttonWidth, buttonHeight);
                 }
             }
             
@@ -185,6 +186,128 @@ namespace piskworks
         }
     }
 
+    // inspered by
+    // https://community.monogame.net/t/how-do-i-create-a-user-input-text-box-that-stores-input-into-variables/11621/3
+    public class TextInputScreen : GameScreen
+    {
+        // display diferent message if again
+
+        private bool _again;
+        private TextInput _textInput;
+        private Button _enterButton;
+        private Button _eraseButton;
+        private StringBuilder _text;
+        private static GameWindow _gameWindow;
+        public TextInputScreen(Game game, bool again = false) : base(game)
+        {
+            _again = again;
+            _gameWindow = game.Window;
+            _text = new StringBuilder();
+            createOrUpdateButtons();
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            createOrUpdateButtons();
+            var before = _textInput.InFocus;
+            if (_textInput.WasPresed()) {
+                _textInput.InFocus = true;
+            }
+            if (!before && _textInput.InFocus) {
+                registerFocusedButtonForTextInput(onInput);
+            }
+            if (_enterButton.WasPresed()) {
+                unRegisterFocusedButtonForTextInput(onInput);
+                _game.TransitionFromTextInput(_text.ToString());
+                return;
+            }
+            if (_eraseButton.WasPresed()) {
+                erase();
+            }
+        }
+        
+        private static void registerFocusedButtonForTextInput(System.EventHandler<TextInputEventArgs> method)
+        {
+            _gameWindow.TextInput += method;
+        }
+        private static void unRegisterFocusedButtonForTextInput(System.EventHandler<TextInputEventArgs> method)
+        {
+            _gameWindow.TextInput -= method;
+        }
+        private void onInput(object sender, TextInputEventArgs e)
+        {
+            var k = e.Key;
+            var c = e.Character;
+            _text.Append(c);
+            _textInput.UpdateLabel(_text.ToString());
+            //Console.WriteLine(_text);
+        }
+
+        private void erase()
+        {
+            _textInput.InFocus = false;
+            unRegisterFocusedButtonForTextInput(onInput);
+            _text.Clear();
+            _textInput.UpdateLabel(null);
+        }
+
+        public void createOrUpdateButtons()
+        {
+            var viewport = _game.GraphicsDevice.Viewport;
+            var offsetTop = viewport.Height / 2;
+            var textInputWidth = viewport.Width / 3;
+            var offsetLeft = viewport.Width / 3 - textInputWidth / 2;
+            var buttonWidth = viewport.Width / 7;
+            var height = viewport.Height / 20;
+            var offsetBetween = viewport.Width / 30;
+
+            if (_textInput == null || _enterButton == null) {
+                _textInput = new TextInput(_game, offsetLeft, offsetTop, textInputWidth, height, null);
+                _enterButton = new Button(_game, offsetLeft + textInputWidth + offsetBetween, offsetTop,
+                    buttonWidth, height, "Enter");
+                _eraseButton = new Button(_game, offsetLeft + textInputWidth + buttonWidth + 2 * offsetBetween,
+                    offsetTop,
+                    buttonWidth, height, "Erase");
+            }
+            else {
+                _textInput.UpdateData(offsetLeft, offsetTop, textInputWidth, height);
+                _enterButton.UpdateData(offsetLeft + textInputWidth + offsetBetween, offsetTop,
+                    buttonWidth, height);
+                _eraseButton.UpdateData(offsetLeft + textInputWidth + buttonWidth + 2 * offsetBetween,
+                    offsetTop,
+                    buttonWidth, height);
+            }
+
+        }
+
+        public override void Draw(GameTime gameTime)
+        {
+            createOrUpdateButtons();
+            var viewport = _game.GraphicsDevice.Viewport;
+            var sb = _game.SpriteBatch;
+            
+            sb.Begin(samplerState: SamplerState.PointClamp);
+            if (_again) {
+                sb.DrawStringCentered("Please try again", new Vector2(viewport.Width / 2, viewport.Height / 4), 3, PiskBlue);
+            }
+            sb.DrawStringCentered("Enter the host IP address (IPv6)", new Vector2(viewport.Width / 2, viewport.Height / 3),
+                4, PiskBlue);
+            
+            var center = new Vector2(_textInput.X + _textInput.Width / 2, _textInput.Y + _textInput.Height / 2);
+            sb.Draw(WhitePixel, new Rectangle(_textInput.X, _textInput.Y, _textInput.Width, _textInput.Height), 
+                WhitePixelSourceRect, Color.White);
+            if (_textInput.Label != null) {
+                sb.DrawStringCentered(_textInput.Label, center, 2, PiskBlue);   
+            }
+
+            DrawButton(_enterButton, sb);
+            DrawButton(_eraseButton, sb);
+            
+            sb.End();
+
+        }
+    }
+
     public class MessageScreen : GameScreen
     {
         private string _message;
@@ -210,7 +333,7 @@ namespace piskworks
                     buttonHeight, buttonLabel);
             } else {
                 _cancelButton.UpdateData(centedWidth - buttonWidth / 2, viewport.Height / 2, buttonWidth,
-                    buttonHeight, buttonLabel);
+                    buttonHeight);
             }
         }
 
@@ -348,7 +471,7 @@ namespace piskworks
                             _fieldList[x, y, z] = field;
                         }
                         else { // update button size - resizing
-                            _fieldList[x, y, z].UpdateData(xScreen, yScreen, fieldSize, fieldSize, null);
+                            _fieldList[x, y, z].UpdateData(xScreen, yScreen, fieldSize, fieldSize);
                         }
                         // get correct highlight for fields
                         Color fieldHighlight;
@@ -420,7 +543,7 @@ namespace piskworks
                 _menuButton = new Button(_game, screenX, screenY, width, height, label);
             }
             else {
-                _menuButton.UpdateData(screenX, screenY, width, height, label);
+                _menuButton.UpdateData(screenX, screenY, width, height);
             }
         }
 
@@ -436,7 +559,7 @@ namespace piskworks
                 _tracker = new MouseTracker(_game, offsetLeft, offsetTop, width, height, null);
             }
             else {
-                _tracker.UpdateData(offsetLeft, offsetTop, width, height, null);
+                _tracker.UpdateData(offsetLeft, offsetTop, width, height);
                 _tracker.Update();
             }
         }
