@@ -241,15 +241,14 @@ namespace piskworks
         {
             var client = new TcpClient();
             var notConnected = true;
-            // while (notConnected) {
-            //     try {
-            //         await client.ConnectAsync(ipAddress, PORT);
-            //         notConnected = false;
-            //     }
-            //     catch (SocketException e) {
-            //     }
-            // }
-            await client.ConnectAsync(ipAddress, PORT);
+            while (notConnected) {
+                try {
+                    await client.ConnectAsync(ipAddress, PORT);
+                    notConnected = false;
+                }
+                catch (SocketException e) {
+                }
+            }
             Comunicator = new ComunicatorTcp(client);
             Comunicator.StartComunication();
         }
