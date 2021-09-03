@@ -1,23 +1,40 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading;
+using piskworks.Utils;
 
-namespace piskworks
+namespace piskworks.GameSrc
 {
-    public interface IComunicator
+    /// <summary>
+    /// General interface of a communicator
+    /// </summary>
+    public interface ICommunicator
     {
+        /// <summary>
+        /// Send the given <see cref="MessageObject"/>
+        /// </summary>
+        /// <param name="msg">Message to send</param>
         public void Send(MessageObject msg);
+        /// <summary>
+        /// Receive an incoming message as a <see cref="MessageObject"/>
+        /// </summary>
+        /// <returns>Received message</returns>
         public MessageObject Receive();
+        /// <summary>
+        /// True if there are some incoming messages available, false othewise.
+        /// </summary>
         public bool IsMsgAvailable();
         public void StartComunication();
         public void EndComunication();
 
     }
 
-    public class ComunicatorTcp : IComunicator
+    /// <summary>
+    /// Communicator that uses a TcpClient communicate on the network
+    /// </summary>
+    public class CommunicatorTcp : ICommunicator
     {
         private bool _comunicationEnded;
         
@@ -28,7 +45,7 @@ namespace piskworks
         private StreamReader _reader;
         private StreamWriter _writer;
 
-        public ComunicatorTcp(TcpClient tcpClient)
+        public CommunicatorTcp(TcpClient tcpClient)
         {
             _tcpClient = tcpClient;
             _sendQueue = new ThreadSafeQueue<MessageObject>();
@@ -109,7 +126,10 @@ namespace piskworks
         }
     }
     
-    public class TestComunicator : IComunicator
+    /// <summary>
+    /// Mock up of a communicator.
+    /// </summary>
+    public class TestCommunicator : ICommunicator
     {
         private int i = 0;
         public List<MessageObject> _testMoves = new List<MessageObject>();

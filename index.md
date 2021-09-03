@@ -42,6 +42,9 @@ Both players have a `piskworks.IComunicator` that manages the communication with
 `piskworks.IComunicator` interface is very simple - it has a way to send a message, look if messages are available and receive them.
 This allowed me to use a mock communicator that didn't perform any network connections for testing purposes.
 
+Only the host player performs checks on the board to see if the current move was a winning move.
+If it is, the host informs the guest in a message.
+
 
 ## Implementation
 

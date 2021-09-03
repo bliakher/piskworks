@@ -5,13 +5,27 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace piskworks
+namespace piskworks.Graphics
 {
+    /// <summary>
+    /// 3D model of object.
+    /// Consist of vertex and index buffers.
+    /// </summary>
     public class Model3D
     {
+        /// <summary>
+        /// Buffer of vertices
+        /// </summary>
         public VertexBuffer VertexBuffer { get; private set; }
+        /// <summary>
+        /// Buffer of indices into the vertex buffer.
+        /// Each three indices make a triangle.
+        /// </summary>
         public IndexBuffer IndexBuffer { get; private set; }
 
+        /// <summary>
+        /// Creates a model with colored vertices.
+        /// </summary>
         public Model3D(GraphicsDevice graphicsDevice, IList<VertexPositionColor> vertices, IList<int> indices)
         {
             VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), vertices.Count,
@@ -21,6 +35,9 @@ namespace piskworks
             IndexBuffer.SetData(indices.ToArray());
         }
         
+        /// <summary>
+        /// Creates a model without information about color.
+        /// </summary>
         public Model3D(GraphicsDevice graphicsDevice, IList<VertexPosition> vertices, IList<int> indices)
         {
             VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPosition), vertices.Count,
@@ -31,6 +48,9 @@ namespace piskworks
         }
     }
     
+    /// <summary>
+    /// Loader of .obj files as <see cref="Model3D"/> objects.
+    /// </summary>
     public class Model3DLoader
     {
         private GraphicsDevice _graphicsDevice;
@@ -40,6 +60,11 @@ namespace piskworks
             _graphicsDevice = graphicsDevice;
         }
 
+        /// <summary>
+        /// Load a <see cref="Model3D"/> from the specified file.
+        /// </summary>
+        /// <param name="sourceFileName">File name of the source .obj file</param>
+        /// <returns></returns>
         public Model3D Load(string sourceFileName)
         {
             var reader = new StreamReader(sourceFileName);

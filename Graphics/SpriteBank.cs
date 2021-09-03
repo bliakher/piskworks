@@ -1,11 +1,20 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace piskworks
+namespace piskworks.Graphics
 {
+    /// <summary>
+    /// Part o a texture that makes a single 'picture' drawable on the screen
+    /// </summary>
     public class Sprite {
 
+        /// <summary>
+        /// Source texture. Can hold multiple sprites
+        /// </summary>
         public Texture2D Texture { get; set; }
+        /// <summary>
+        /// Position of the sprite in the source texture
+        /// </summary>
         public Rectangle SourceRect {
             get => sourceRect;
             set {
@@ -34,6 +43,9 @@ namespace piskworks
         public Vector2 UVBotRight => new Vector2(SourceRect.X + SourceRect.Width, SourceRect.Y + SourceRect.Height) / new Vector2(Texture.Width, Texture.Height);
     }
     
+    /// <summary>
+    /// Bank of sprites used in the game
+    /// </summary>
     public class SpriteBank
     {
         public Texture2D SourceTexture;

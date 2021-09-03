@@ -1,11 +1,15 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using piskworks.GameSrc;
+using Game = piskworks.GameSrc.Game;
 
-namespace piskworks
+namespace piskworks.Graphics
 {
-    public class Vizualizer3D
+    /// <summary>
+    /// Class the makes a 3D visualization of the game board
+    /// </summary>
+    public class Visualizer3D
     {
         private GameBoard _board;
         private Game _game;
@@ -18,33 +22,32 @@ namespace piskworks
         private float _rotationUpAxis;
         private const float maxRotation = 90;
 
-        public Vizualizer3D(GameBoard board, Game game)
+        public Visualizer3D(GameBoard board, Game game)
         {
             _board = board;
-            //_board.FillForTesting();
             _game = game;
             _basicEffect = new BasicEffect(_game.GraphicsDevice);
             UpdateView(0, 0);
             _rotationUpAxis = 0;
         }
 
+        /// <summary>
+        /// Draw the visualization - boarders of the cube and symbols
+        /// </summary>
         public void Draw()
-        {
-            Draw3DVizualization();
-        }
-        
-
-        public void Draw3DVizualization()
         {
             drawNoughts();
             drawCrosses();
             drawBoardLines();
         }
 
+        /// <summary>
+        /// Update the parameters that define the visualization based on user input
+        /// </summary>
+        /// <param name="rotateVer">Rotation angle around a vertical axis as percentage from the maximum rotation angle</param>
+        /// <param name="rotateHor">Rotation angle around a horizontal axis as percentage from the maximum rotation angle</param>
         public void UpdateView(float rotateVer, float rotateHor)
         {
-            // ToDo: fix left and right rotation, add up and down rotation
-            
             // view matrix makes the cube the center of the screen 
             // camera position - far enough that the cube fits the screen
             // target - center of the cube
@@ -129,7 +132,6 @@ namespace piskworks
             }
         }
         
-
         private void drawNoughts()
         {
             drawSymbols(_game.Nougth, SymbolKind.Nought);    
@@ -193,9 +195,18 @@ namespace piskworks
         
     }
 
+    /// <summary>
+    /// Class that holds parameters camera in 3D visualization
+    /// </summary>
     public class Camera
     {
+        /// <summary>
+        /// View matrix - camera position and target
+        /// </summary>
         public Matrix View;
+        /// <summary>
+        /// Matrix with projection of the camera (perspective)
+        /// </summary>
         public Matrix Projection;
 
         public Camera(Matrix view, Matrix projection)

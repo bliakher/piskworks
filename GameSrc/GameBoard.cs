@@ -1,7 +1,8 @@
-using System;
-
-namespace piskworks
+namespace piskworks.GameSrc
 {
+    /// <summary>
+    /// Symbols on the board (or free field)
+    /// </summary>
     public enum SymbolKind
     {
         Free,
@@ -10,6 +11,9 @@ namespace piskworks
         Invalid
     }
     
+    /// <summary>
+    /// 3D board for noughts and crosses.
+    /// </summary>
     public class GameBoard
     {
         private SymbolKind[,,] board;
@@ -23,6 +27,14 @@ namespace piskworks
             board = new SymbolKind[N, N, N];
         }
 
+        /// <summary>
+        /// Place a symbol on the coordinates.
+        /// </summary>
+        /// <param name="x">X coordinate</param>
+        /// <param name="y">Y coordinate</param>
+        /// <param name="z">Z coordinate</param>
+        /// <param name="symbol">Type of symbol - nought or cross</param>
+        /// <returns>If it is possible to place symbol (field is free)</returns>
         public bool PlaceSybol(int x, int y, int z, SymbolKind symbol)
         {
             if (board[x,y,z] != SymbolKind.Free) {
@@ -32,16 +44,31 @@ namespace piskworks
             return true;
         }
 
+        /// <summary>
+        /// Do move on the game board.
+        /// </summary>
+        /// <param name="move">wanted move <see cref="GameMove"/></param>
+        /// <returns>If move was sucessful</returns>
         public bool DoMove(GameMove move)
         {
             return PlaceSybol(move.Field.X, move.Field.Y, move.Field.Z, move.Symbol);
         }
 
+        /// <summary>
+        /// Get the symbol on specified coordinates.
+        /// </summary>
+        /// <param name="x">X coordinate</param>
+        /// <param name="y">Y coordinate</param>
+        /// <param name="z">Z coordinate</param>
+        /// <returns>symbol from the board</returns>
         public SymbolKind GetSymbol(int x, int y, int z)
         {
             return board[x, y, z];
         }
 
+        /// <summary>
+        /// Fill the board with some symbols for testing purposes.
+        /// </summary>
         public void FillForTesting()
         {
             PlaceSybol(0, 0, 0, SymbolKind.Cross);
@@ -53,6 +80,12 @@ namespace piskworks
             //PlaceSybol(1, 3, 3, SymbolKind.Nought);
         }
 
+        /// <summary>
+        /// Checks if there is a win on the board - N symbols in arow in any direction
+        /// Only checks for one symbol
+        /// </summary>
+        /// <param name="symbol">Symbol to check for a win - nought or a cross</param>
+        /// <returns></returns>
         public bool CheckForWin(SymbolKind symbol)
         {
             WinningFields = new Field[N];
@@ -237,10 +270,18 @@ namespace piskworks
         }
     }
     
-
+    /// <summary>
+    /// Move on the <see cref="GameBoard"/> - field to place the symbol and the kind of symbol
+    /// </summary>
     public struct GameMove
     {
+        /// <summary>
+        /// Field in the <see cref="GameBoard"/> to place the symbol
+        /// </summary>
         public Field Field { get; set; }
+        /// <summary>
+        /// Nought or cross
+        /// </summary>
         public SymbolKind Symbol { get; set; }
 
         public GameMove(int x, int y, int z, SymbolKind symbol)
@@ -255,6 +296,9 @@ namespace piskworks
         }
     }
 
+    /// <summary>
+    /// Struct holding coordinates of a field in the <see cref="GameBoard"/>
+    /// </summary>
     public struct Field
     {
         public int X { get; set; }

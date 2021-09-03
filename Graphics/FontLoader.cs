@@ -2,12 +2,24 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace piskworks
+namespace piskworks.Graphics
 {
+    /// <summary>
+    /// Set of tiles of an object (animation or font) inside one texture
+    /// </summary>
     public class Tileset
     {
+        /// <summary>
+        /// Width of tile
+        /// </summary>
         public int TileWidth { get; private set; }
+        /// <summary>
+        /// Height of tile
+        /// </summary>
         public int TileHeight { get; private set; }
+        /// <summary>
+        /// Source texture with all the tiles
+        /// </summary>
         public Texture2D Texture { get; private set; }
 
         public Tileset(Texture2D texture, int tileWidth, int tileHeight)
@@ -17,6 +29,11 @@ namespace piskworks
             TileHeight = tileHeight;
         }
 
+        /// <summary>
+        /// Get specified tile from the tileset
+        /// </summary>
+        /// <param name="id">Order of the tile in the tileset</param>
+        /// <returns></returns>
         public Rectangle GetTile(int id)
         {
             int W = Texture.Width / TileWidth;
@@ -25,7 +42,15 @@ namespace piskworks
         }
     }
     
+    /// <summary>
+    /// Loader of fonts
+    /// </summary>
     public static class FontLoader {
+        /// <summary>
+        /// Creates a font from the source texture
+        /// </summary>
+        /// <param name="srcTexture">Source texture</param>
+        /// <returns>Created font</returns>
         public static SpriteFont CreateFont(Texture2D srcTexture) {
             var glyphBounds = new List<Rectangle>();
             var cropping = new List<Rectangle>();

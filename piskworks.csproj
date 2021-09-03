@@ -17,15 +17,18 @@
     <None Remove="TODO.md" />
     <None Remove="wc" />
     <None Remove="latex\**" />
+    <None Remove="Game\**" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Icon.ico" />
     <EmbeddedResource Include="Icon.bmp" />
     <EmbeddedResource Remove="latex\**" />
+    <EmbeddedResource Remove="Game\**" />
   </ItemGroup>
   <ItemGroup>
     <MonoGameContentReference Include="Content\Content.mgcb" />
     <MonoGameContentReference Remove="latex\**" />
+    <MonoGameContentReference Remove="Game\**" />
   </ItemGroup>
   <ItemGroup>
     <TrimmerRootAssembly Include="Microsoft.Xna.Framework.Content.ContentTypeReader" Visible="false" />
@@ -37,6 +40,7 @@
   <ItemGroup>
     <Compile Remove="Vizualizer.cs" />
     <Compile Remove="latex\**" />
+    <Compile Remove="Game\**" />
   </ItemGroup>
   <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
     <Copy SourceFiles="Content/kolecko.obj" DestinationFolder="dist/Content" />

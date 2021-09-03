@@ -1,7 +1,12 @@
 using System.Collections.Generic;
 
-namespace piskworks
+namespace piskworks.Utils
 {
+    
+    /// <summary>
+    /// Thread safe queue that can be accessed from different threads without conflict
+    /// </summary>
+    /// <typeparam name="T">Items in the queue</typeparam>
     public class ThreadSafeQueue<T>
     {
         private Queue<T> _queue;
