@@ -239,6 +239,9 @@ namespace piskworks.Utils
         }
     }
 
+    /// <summary>
+    /// Text input field
+    /// </summary>
     public class TextInput : Button
     {
         public bool InFocus;
