@@ -3,14 +3,27 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using piskworks.GameSrc;
+using piskworks.Utils;
+using Game = piskworks.GameSrc.Game;
 
-namespace piskworks
+namespace piskworks.Graphics
 {
+    /// <summary>
+    /// Screen displayed to the user.
+    ///
+    /// Abstract class contains a common color palette that is used by descendant screens.
+    /// </summary>
     public abstract class GameScreen
     {
         public Game _game;
-        public Texture2D WhitePixel;
-        public Rectangle WhitePixelSourceRect;
+        /// <summary>
+        /// White texture used for drawing colored rectangles (for buttons)
+        /// </summary>
+        public Sprite WhitePixel;
+        /// <summary>
+        /// Common color palette
+        /// </summary>
         public readonly Color PiskRed;
         public readonly Color PiskBlue;
         public readonly Color PiskDarkBlue;
@@ -22,9 +35,10 @@ namespace piskworks
         protected GameScreen(Game game)
         {
             _game = game;
-            WhitePixel = new Texture2D(_game.GraphicsDevice, 1, 1);
-            WhitePixel.SetData(new []{Color.White});
-            WhitePixelSourceRect = new Rectangle(0, 0, 1, 1);
+            var whitePixel = new Texture2D(_game.GraphicsDevice, 1, 1);
+            whitePixel.SetData(new []{Color.White});
+            var whitePixelSourceRect = new Rectangle(0, 0, 1, 1);
+            WhitePixel = new Sprite() {Texture = whitePixel, SourceRect = whitePixelSourceRect};
             PiskBlue = new Color(0, 87, 132);
             PiskDarkBlue = new Color(4, 68, 103);
             PiskRed = new Color(167, 29, 38);
@@ -43,17 +57,27 @@ namespace piskworks
                 DrawButton(button, sb);
             }
         }
+        /// <summary>
+        /// Draws the given button base don its sizes and the highlight
+        /// </summary>
+        /// <param name="button"></param>
+        /// <param name="sb"></param>
         protected void DrawButton(Button button, SpriteBatch sb)
         {
             var center = new Vector2(button.X + button.Width / 2, button.Y + button.Height / 2);
             var buttonColor = button.IsHighlighted ? PiskDarkBlue : PiskBlue;
                 
-            sb.Draw(WhitePixel, new Rectangle(button.X, button.Y, button.Width, button.Height), 
-                WhitePixelSourceRect, buttonColor);
+            sb.Draw(WhitePixel.Texture, new Rectangle(button.X, button.Y, button.Width, button.Height), 
+                WhitePixel.SourceRect, buttonColor);
             sb.DrawStringCentered(button.Label, center, 2, Color.White);
         }
 
     }
+    /// <summary>
+    /// Introduction screen with the logo.
+    ///
+    /// User his selects his role (host/guest) using buttons. 
+    /// </summary>
     public class IntroScreen : GameScreen
     {
         private HostingButton _hostButton;
@@ -122,6 +146,10 @@ namespace piskworks
         }
     }
 
+    /// <summary>
+    /// Screen to choose the dimension of the cube-board in the game
+    /// Should be only displayed to <see cref="HostPlayer"/>
+    /// </summary>
     public class DimensionScreen : GameScreen
     {
         private List<NumberButton> _buttonList;
@@ -186,8 +214,14 @@ namespace piskworks
         }
     }
 
-    // inspered by
-    // https://community.monogame.net/t/how-do-i-create-a-user-input-text-box-that-stores-input-into-variables/11621/3
+    /// <summary>
+    /// Screen with a text input to enter the IP address to connect to.
+    /// After writing some text in the text input it is possible to send the text with the enter button
+    /// or to erase it with the erase button. 
+    /// Should be only displayed to the <see cref="GuestPlayer"/>
+    /// </summary>
+    /// inspired by
+    /// https://community.monogame.net/t/how-do-i-create-a-user-input-text-box-that-stores-input-into-variables/11621/3
     public class TextInputScreen : GameScreen
     {
         // display diferent message if again
@@ -296,8 +330,8 @@ namespace piskworks
                 3, PiskBlue);
             
             var center = new Vector2(_textInput.X + _textInput.Width / 2, _textInput.Y + _textInput.Height / 2);
-            sb.Draw(WhitePixel, new Rectangle(_textInput.X, _textInput.Y, _textInput.Width, _textInput.Height), 
-                WhitePixelSourceRect, Color.White);
+            sb.Draw(WhitePixel.Texture, new Rectangle(_textInput.X, _textInput.Y, _textInput.Width, _textInput.Height), 
+                WhitePixel.SourceRect, Color.White);
             if (_textInput.Label != null) {
                 sb.DrawStringCentered(_textInput.Label, center, 2, PiskBlue);   
             }
@@ -310,6 +344,10 @@ namespace piskworks
         }
     }
 
+    /// <summary>
+    /// Screen for diplaying different messages to the user.
+    /// After reading the message, the user can return to the menu.
+    /// </summary>
     public class MessageScreen : GameScreen
     {
         private string _message;
@@ -363,9 +401,15 @@ namespace piskworks
         }
     }
 
+    /// <summary>
+    /// Main screen displaying the running game.
+    /// It has an interactive board sliced to separate levels to place symbols
+    /// and a 3D visualization of the board
+    /// which can be turned by dragging to show differen sides of the cube-board.
+    /// </summary>
     public class PlayScreen : GameScreen
     {
-        private Vizualizer3D _vizualizer;
+        private Visualizer3D _visualizer;
         private GameBoard _board;
         private GameField[,,] _fieldList;
         private Button _menuButton;
@@ -378,7 +422,7 @@ namespace piskworks
         public PlayScreen(Game game, GameBoard board, bool itsMyTurn) : base(game)
         {
             _board = board;
-            _vizualizer = new Vizualizer3D(_board, _game);
+            _visualizer = new Visualizer3D(_board, _game);
             _fieldList = new GameField[board.N, board.N, board.N];
             _itsMyTurn = itsMyTurn;
             fieldsMarkedFlag = false;
@@ -414,7 +458,7 @@ namespace piskworks
             updateGameBoard();
             updateMouseTracker();
             var (movX, movY) = _tracker.GetMouseMovement();
-            _vizualizer.UpdateView(movX, movY);
+            _visualizer.UpdateView(movX, movY);
 
         }
 
@@ -433,7 +477,7 @@ namespace piskworks
             var displayedText = _game.IsGameOver ? whoWonText : whosPlayingText;
             var textColor = _game.IsGameOver ? PiskRed : PiskBlue;
 
-            _vizualizer.Draw();
+            _visualizer.Draw();
             
             sb.Begin(samplerState: SamplerState.PointClamp);
 
@@ -583,7 +627,7 @@ namespace piskworks
                 if (_itsMyTurn) {
                     checkFields();
                 }
-                else if (_game.Player.Comunicator.IsMsgAvailable()) {
+                else if (_game.Player.Communicator.IsMsgAvailable()) {
                     _game.Player.DealWithMsg();
                 }
             }

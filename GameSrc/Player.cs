@@ -15,7 +15,7 @@ namespace piskworks.GameSrc
     }
     
     /// <summary>
-    /// 
+    /// Player representing the user playing the game
     /// </summary>
     public abstract class Player
     {
