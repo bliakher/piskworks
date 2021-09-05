@@ -191,52 +191,65 @@ namespace piskworks.Utils
     /// </summary>
     public class MouseTracker : Button
     {
-        private int _mouseStartX;
-        private int _mouseStartY;
-        private bool _isPressedDown;
+        private int _mouseLastX;
+        private int _mouseLastY;
+        public bool IsPressedDown;
 
-        private int mouseDistanceX;
-        private int mouseDistanceY;
-        /// <summary>
-        /// True after a drag is registered but before the data is read by calling <see cref="GetMouseMovement"/>
-        /// </summary>
-        public bool MovementRegistered { get; private set; }
+        private int _mouseDeltaX;
+        private int _mouseDeltaY;
+
+        public float MouseDeltaX => _mouseDeltaX / (float)Width;
+        public float MouseDeltaY => _mouseDeltaY / (float) Height;
 
         public MouseTracker(Game game, int x, int y, int width, int height, string label, Texture2D texture = null) : base(game, x, y, width, height, label, texture)
         {
-            _mouseStartX = -1;
-            _mouseStartY = -1;
-            _isPressedDown = false;
+            _mouseLastX = -1;
+            _mouseLastY = -1;
+            IsPressedDown = false;
         }
 
         public void Update()
         {
             IsHighlighted = HasMouseOn();
-            if (_isPressedDown) {
+            if (IsPressedDown) {
                 if (WasReleased()) {
-                    _isPressedDown = false;
-                    MovementRegistered = true;
-                    mouseDistanceX = _mouseStartX - lastMouseState.X;
-                    mouseDistanceY = _mouseStartY - lastMouseState.Y;
-                    _mouseStartX = -1;
-                    _mouseStartY = -1;
+                    IsPressedDown = false;
+                    _mouseLastX = -1;
+                    _mouseLastY = -1;
+                }
+                else {
+                    var newX = Mouse.GetState().X;
+                    var newY = Mouse.GetState().Y;
+                    _mouseDeltaX = _mouseLastX - newX;
+                    _mouseDeltaY = _mouseLastY - newY;
+                    _mouseLastX = newX;
+                    _mouseLastY = newY;
                 }
             }
             else if (WasPresed()) {
-                _isPressedDown = true;
-                _mouseStartX = lastMouseState.X;
-                _mouseStartY = lastMouseState.Y;
+                IsPressedDown = true;
+                _mouseLastX = lastMouseState.X;
+                _mouseLastY = lastMouseState.Y;
             }
+            
+            // IsHighlighted = HasMouseOn();
+            // if (_isPressedDown) {
+            //     if (WasReleased()) {
+            //         _isPressedDown = false;
+            //         MovementRegistered = true;
+            //         mouseDistanceX = _mouseStartX - lastMouseState.X;
+            //         mouseDistanceY = _mouseStartY - lastMouseState.Y;
+            //         _mouseStartX = -1;
+            //         _mouseStartY = -1;
+            //     }
+            // }
+            // else if (WasPresed()) {
+            //     _isPressedDown = true;
+            //     _mouseStartX = lastMouseState.X;
+            //     _mouseStartY = lastMouseState.Y;
+            // }
         }
-
-        public (float movX, float movY) GetMouseMovement()
-        {
-            if (!MovementRegistered) {
-                return (0,0);
-            }
-            MovementRegistered = false; // reading is destructive - can read only once
-            return (mouseDistanceX / (float)Width, mouseDistanceY / (float)Height);
-        }
+        
     }
 
     /// <summary>

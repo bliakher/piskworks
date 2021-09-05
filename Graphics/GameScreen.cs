@@ -457,7 +457,7 @@ namespace piskworks.Graphics
             }
             updateGameBoard();
             updateMouseTracker();
-            var movX = _tracker.IsPressedDown ? _tracker.MouseDistanceX : 0;
+            float movX = _tracker.IsPressedDown ? _tracker.MouseDeltaX : 0;
             _visualizer.UpdateView(movX, 0);
 
         }
