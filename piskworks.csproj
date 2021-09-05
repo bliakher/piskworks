@@ -18,6 +18,12 @@
     <None Remove="wc" />
     <None Remove="latex\**" />
     <None Remove="Game\**" />
+    <None Update="Content\kolecko.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Content\krizek.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Icon.ico" />
@@ -42,8 +48,4 @@
     <Compile Remove="latex\**" />
     <Compile Remove="Game\**" />
   </ItemGroup>
-  <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
-    <Copy SourceFiles="Content/kolecko.obj" DestinationFolder="dist/Content" />
-    <Copy SourceFiles="Content/krizek.obj" DestinationFolder="dist/Content" />
-  </Target>
 </Project>
