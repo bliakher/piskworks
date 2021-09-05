@@ -326,7 +326,7 @@ namespace piskworks.Graphics
             if (_again) {
                 sb.DrawStringCentered("Please try again", new Vector2(viewport.Width / 2, viewport.Height / 4), 2, PiskBlue);
             }
-            sb.DrawStringCentered("Enter the host IP address (IPv6)", new Vector2(viewport.Width / 2, viewport.Height / 3),
+            sb.DrawStringCentered("Enter the host IP address (IPv4)", new Vector2(viewport.Width / 2, viewport.Height / 3),
                 3, PiskBlue);
             
             var center = new Vector2(_textInput.X + _textInput.Width / 2, _textInput.Y + _textInput.Height / 2);

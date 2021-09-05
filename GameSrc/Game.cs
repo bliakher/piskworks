@@ -70,13 +70,13 @@ namespace piskworks.GameSrc
             Window.AllowUserResizing = true;
            
 
-            // _currentScreen = new IntroScreen(this);
+            _currentScreen = new IntroScreen(this);
             
             //for testing
-            Board = new GameBoard(5);
-            Board.FillForTesting();
-            Player = new HostPlayer(this);
-            _currentScreen = new PlayScreen(this, Board, true);
+            // Board = new GameBoard(5);
+            // Board.FillForTesting();
+            // Player = new HostPlayer(this);
+            // _currentScreen = new PlayScreen(this, Board, true);
             
             base.Initialize();
         }
@@ -168,7 +168,8 @@ namespace piskworks.GameSrc
             // check ip adress
             // try again or start the player
             var hasAddress = IPAddress.TryParse(text, out var ipAddress);
-            if (hasAddress && !(ipAddress.AddressFamily is AddressFamily.InterNetwork) ) {
+            var isIPv4 = ipAddress.AddressFamily is AddressFamily.InterNetwork;
+            if (hasAddress ) {
                 Player = new GuestPlayer(this, ipAddress); // give him the ip address
                 Player.Start();
             }

@@ -100,7 +100,6 @@ namespace piskworks.GameSrc
         public HostPlayer(Game game) : base(game)
         {
             PlayerSymbol = SymbolKind.Cross;
-            //Comunicator = new TestComunicator();
             _listening = false;
         }
         
@@ -134,7 +133,8 @@ namespace piskworks.GameSrc
 
         private async Task connectOtherPlayer(CancellationToken token)
         {
-            _listener = new TcpListener(IPAddress.Any, PORT);
+            var endpoint = new IPEndPoint(IPAddress.Any, PORT);
+            _listener = new TcpListener(endpoint);
             _listener.Start();
             _listening = true;
             Console.WriteLine($"listening on port {PORT}");
@@ -304,14 +304,15 @@ namespace piskworks.GameSrc
         {
             var client = new TcpClient();
             var notConnected = true;
-            while (notConnected) {
-                try {
-                    await client.ConnectAsync(ipAddress, PORT);
-                    notConnected = false;
-                }
-                catch (SocketException e) {
-                }
-            }
+            // while (notConnected) {
+            //     try {
+            //         await client.ConnectAsync(ipAddress, PORT);
+            //         notConnected = false;
+            //     }
+            //     catch (SocketException e) {
+            //     }
+            // }
+            await client.ConnectAsync(ipAddress, PORT);
             Communicator = new CommunicatorTcp(client);
             Communicator.StartComunication();
         }
