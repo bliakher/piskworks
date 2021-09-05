@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using piskworks.GameSrc;
 using piskworks.Utils;
 using Game = piskworks.GameSrc.Game;
@@ -271,10 +272,18 @@ namespace piskworks.Graphics
         private void onInput(object sender, TextInputEventArgs e)
         {
             var k = e.Key;
-            var c = e.Character;
-            _text.Append(c);
-            _textInput.UpdateLabel(_text.ToString());
-            //Console.WriteLine(_text);
+            if (k == Keys.Back) {
+                if (_text.Length > 0) {
+                    _text.Remove(_text.Length - 1, 1);
+                    _textInput.UpdateLabel(_text.ToString());
+                }
+            }
+            else {
+                var c = e.Character;
+                _text.Append(c);
+                _textInput.UpdateLabel(_text.ToString());
+                //Console.WriteLine(_text);   
+            }
         }
 
         private void erase()
