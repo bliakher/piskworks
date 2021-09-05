@@ -602,10 +602,10 @@ namespace piskworks.Graphics
         private void updateMouseTracker()
         {
             var viewport = _game.GraphicsDevice.Viewport;
-            var width = viewport.Width / 3;
-            var height = viewport.Height / 2;
-            var offsetTop = viewport.Height / 2  - viewport.Height / 20;
-            var offsetLeft = viewport.Width / 2 - width / 2;
+            var width = viewport.Width;
+            var height = 2 * viewport.Height / 3;
+            var offsetTop = viewport.Height / 3 + viewport.Height / 10;
+            var offsetLeft = 0;
 
             if (_tracker == null) {
                 _tracker = new MouseTracker(_game, offsetLeft, offsetTop, width, height, null);
