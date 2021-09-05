@@ -173,8 +173,7 @@ namespace piskworks.GameSrc
             // check ip adress
             // try again or start the player
             var hasAddress = IPAddress.TryParse(text, out var ipAddress);
-            var isIPv4 = ipAddress.AddressFamily is AddressFamily.InterNetwork;
-            if (hasAddress ) {
+            if (hasAddress && ipAddress.AddressFamily is AddressFamily.InterNetwork) {
                 Player = new GuestPlayer(this, ipAddress); // give him the ip address
                 Player.Start();
             }
