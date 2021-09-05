@@ -65,6 +65,11 @@ namespace piskworks.GameSrc
             ThisPlayerWon = false;
         }
 
+        protected override void EndRun()
+        {
+            Player?.Stop();
+        }
+
         protected override void Initialize()
         {
             Window.AllowUserResizing = true;
