@@ -25,6 +25,8 @@ namespace piskworks.GameSrc
         public GameMove Move { get; set; }
         public bool IsWinning { get; set; }
         
+        public bool IsDraw { get; set; }
+        
         /// <summary>
         /// Creates message with MessageKind.Move
         /// </summary>
@@ -32,7 +34,7 @@ namespace piskworks.GameSrc
         /// <param name="isWinning">If this move wins the game</param>
         public static MessageObject CreateMoveMsg(GameMove move, bool isWinning = false)
         {
-            return new MessageObject() {Kind = MessageKind.Move, Dimension = -1, Move = move, IsWinning = isWinning};
+            return new MessageObject() {Kind = MessageKind.Move, Dimension = -1, Move = move, IsWinning = isWinning, IsDraw = false};
         }
 
         /// <summary>
@@ -43,7 +45,7 @@ namespace piskworks.GameSrc
         {
             return new MessageObject()
                 {Kind = MessageKind.Dimension, Dimension = dimension, 
-                    Move = new GameMove(-1, -1, -1, SymbolKind.Invalid), IsWinning = false};
+                    Move = new GameMove(-1, -1, -1, SymbolKind.Invalid), IsWinning = false, IsDraw = false};
         }
 
         /// <summary>
@@ -52,11 +54,11 @@ namespace piskworks.GameSrc
         /// <param name="iswinning">True if game ended because of the victory of one player,
         /// false if ended because one player quit the game</param>
         /// <returns></returns>
-        public static MessageObject CreateGameOverMsg(bool iswinning)
+        public static MessageObject CreateGameOverMsg(bool iswinning, bool isDraw = false)
         {
             return new MessageObject()
             {Kind = MessageKind.GameOver, Dimension = -1, 
-                Move = new GameMove(-1, -1, -1, SymbolKind.Invalid), IsWinning = iswinning};
+                Move = new GameMove(-1, -1, -1, SymbolKind.Invalid), IsWinning = iswinning, IsDraw = isDraw};
         }
     }
     

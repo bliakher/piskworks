@@ -16,15 +16,22 @@ namespace piskworks.GameSrc
     /// </summary>
     public class GameBoard
     {
-        private SymbolKind[,,] board;
-        public int N;
+        private SymbolKind[,,] _board;
+        private int _symbolCount;
         
+        public int N;
         public Field[] WinningFields;
+
+        /// <summary>
+        /// True if all fields of the board have symbols placed
+        /// </summary>
+        public bool BoardIsFull => _symbolCount == N * N * N;
 
         public GameBoard(int dimension)
         {
             N = dimension;
-            board = new SymbolKind[N, N, N];
+            _board = new SymbolKind[N, N, N];
+            _symbolCount = 0;
         }
 
         /// <summary>
@@ -37,10 +44,11 @@ namespace piskworks.GameSrc
         /// <returns>If it is possible to place symbol (field is free)</returns>
         public bool PlaceSybol(int x, int y, int z, SymbolKind symbol)
         {
-            if (board[x,y,z] != SymbolKind.Free) {
+            if (_board[x,y,z] != SymbolKind.Free) {
                 return false;
             }
-            board[x, y, z] = symbol;
+            _board[x, y, z] = symbol;
+            _symbolCount++;
             return true;
         }
 
@@ -63,7 +71,7 @@ namespace piskworks.GameSrc
         /// <returns>symbol from the board</returns>
         public SymbolKind GetSymbol(int x, int y, int z)
         {
-            return board[x, y, z];
+            return _board[x, y, z];
         }
 
         /// <summary>
@@ -263,7 +271,7 @@ namespace piskworks.GameSrc
 
         private bool checkOne(SymbolKind checkSymbol, int x, int y, int z)
         {
-            if (board[x, y, z] == checkSymbol) {
+            if (_board[x, y, z] == checkSymbol) {
                 return true;
             }
             return false;

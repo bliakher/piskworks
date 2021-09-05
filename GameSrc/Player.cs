@@ -73,6 +73,12 @@ namespace piskworks.GameSrc
             _game.ThisPlayerWon = thisPlayerWon;
         }
 
+        public void AnnounceDraw()
+        {
+            _game.IsGameOver = true;
+            _game.IsDraw = true;
+        }
+
         /// <summary>
         /// Signal the interruption of a running game to the oponent.
         /// </summary>
@@ -177,6 +183,10 @@ namespace piskworks.GameSrc
                     Communicator.Send(MessageObject.CreateGameOverMsg(true));
                     AnnounceWinner(thisPlayerWon: false);
                 }
+                if (_game.Board.BoardIsFull) {
+                    Communicator.Send(MessageObject.CreateGameOverMsg(false, true));
+                    AnnounceDraw();
+                }
                 WaitingForResponse = false;
             }
             else {
@@ -192,6 +202,10 @@ namespace piskworks.GameSrc
                 // this move was the winning move
                 Communicator.Send(MessageObject.CreateMoveMsg(move, true));
                 AnnounceWinner(thisPlayerWon: true);
+            }
+            else if (_game.Board.BoardIsFull) {
+                Communicator.Send(MessageObject.CreateGameOverMsg(false, true));
+                AnnounceDraw();
             }
             else {
                 Communicator.Send(MessageObject.CreateMoveMsg(move));
@@ -247,7 +261,10 @@ namespace piskworks.GameSrc
                 WaitingForResponse = false;
             }
             else if (msg.Kind == MessageKind.GameOver) {
-                if (msg.IsWinning) {
+                if (msg.IsDraw) {
+                    AnnounceDraw();
+                }
+                else if (msg.IsWinning) {
                     _game.Board.CheckForWin(PlayerSymbol);
                     AnnounceWinner(true);
                 }

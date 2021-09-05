@@ -457,8 +457,8 @@ namespace piskworks.Graphics
             }
             updateGameBoard();
             updateMouseTracker();
-            var (movX, movY) = _tracker.GetMouseMovement();
-            _visualizer.UpdateView(movX, movY);
+            var movX = _tracker.IsPressedDown ? _tracker.MouseDistanceX : 0;
+            _visualizer.UpdateView(movX, 0);
 
         }
 
@@ -474,7 +474,13 @@ namespace piskworks.Graphics
             var textTopOffset = viewport.Height / 30;
             var whosPlayingText = _itsMyTurn ? "It's YOUR turn!" : "Waiting for oponent's move";
             var whoWonText = _game.ThisPlayerWon ? "You WON!" : "You LOST..";
-            var displayedText = _game.IsGameOver ? whoWonText : whosPlayingText;
+            string displayedText;
+            if (_game.IsGameOver) {
+                displayedText = _game.IsDraw ? "It is a DRAW." : whoWonText;
+            }
+            else {
+                displayedText = whosPlayingText;
+            }
             var textColor = _game.IsGameOver ? PiskRed : PiskBlue;
 
             _visualizer.Draw();

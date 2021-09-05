@@ -45,6 +45,8 @@ namespace piskworks.GameSrc
         /// </summary>
         public bool IsGameOver { get; set; }
         
+        public bool IsDraw { get; set; }
+        
         /// <summary>
         /// True if this player won, false if the oponent won
         /// </summary>
@@ -59,20 +61,22 @@ namespace piskworks.GameSrc
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             IsGameOver = false;
+            IsDraw = false;
             ThisPlayerWon = false;
         }
 
         protected override void Initialize()
         {
             Window.AllowUserResizing = true;
+           
 
-            _currentScreen = new IntroScreen(this);
+            // _currentScreen = new IntroScreen(this);
             
             //for testing
-            // Board = new GameBoard(5);
-            // Board.FillForTesting();
-            // Player = new HostPlayer(this);
-            // _currentScreen = new PlayScreen(this, Board, true);
+            Board = new GameBoard(5);
+            Board.FillForTesting();
+            Player = new HostPlayer(this);
+            _currentScreen = new PlayScreen(this, Board, true);
             
             base.Initialize();
         }
@@ -204,7 +208,12 @@ namespace piskworks.GameSrc
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            
+            GraphicsDevice.DepthStencilState = new DepthStencilState() {
+                DepthBufferEnable = true,
+                DepthBufferWriteEnable = true,
+                DepthBufferFunction = CompareFunction.LessEqual,
+            };
+
             _currentScreen.Draw(gameTime);
             
             base.Draw(gameTime);
