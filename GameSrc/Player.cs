@@ -304,15 +304,14 @@ namespace piskworks.GameSrc
         {
             var client = new TcpClient();
             var notConnected = true;
-            // while (notConnected) {
-            //     try {
-            //         await client.ConnectAsync(ipAddress, PORT);
-            //         notConnected = false;
-            //     }
-            //     catch (SocketException e) {
-            //     }
-            // }
-            await client.ConnectAsync(ipAddress, PORT);
+            while (notConnected) {
+                try {
+                    await client.ConnectAsync(ipAddress, PORT);
+                    notConnected = false;
+                }
+                catch (SocketException e) {
+                }
+            }
             Communicator = new CommunicatorTcp(client);
             Communicator.StartComunication();
         }

@@ -20,7 +20,7 @@ His symbol is a Cross.
 
 Join player will connect to the host player's game. 
 To do that you need to enter the IP address of the Host player. 
-The IP address must be in IPv6 format.
+The IP address must be in IPv4 format.
 Join player is playing second and his symbol is a Nought.
 
 ### Playing
