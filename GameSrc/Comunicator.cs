@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading;
 using piskworks.Utils;
 
+//! Source files with the game and networking logic
 namespace piskworks.GameSrc
 {
     /// <summary>

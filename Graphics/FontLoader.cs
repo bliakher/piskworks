@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+//! Source file for the game graphics and 3D vizualization
 namespace piskworks.Graphics
 {
     /// <summary>

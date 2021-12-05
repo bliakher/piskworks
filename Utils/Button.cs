@@ -4,6 +4,7 @@ using piskworks.GameSrc;
 using piskworks.Graphics;
 using Game = piskworks.GameSrc.Game;
 
+//! Game control elements and data structures
 namespace piskworks.Utils
 {
     /// <summary>
