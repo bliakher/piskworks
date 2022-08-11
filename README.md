@@ -1,5 +1,7 @@
 # piskworks
 
+![piskworks](https://user-images.githubusercontent.com/44325210/184224080-1bc0401d-dcdd-4cd7-8f2a-c093b158877d.png)
+
 Multiplayer game of 3D Noughts and Crosses.
 
 ## Rules of the game
@@ -15,15 +17,25 @@ Your goal is to make a straight line of N symbols in any direction (with all typ
 You will need two players, both connected on the same local network.
 One will be the Host player and the other the Join player.
 
+![Screenshot 2022-08-11 at 20 35 30](https://user-images.githubusercontent.com/44325210/184224710-b53fb283-09b7-4243-ae52-e4c4c1f59fd6.png)
+
+
 Host player chooses the dimension of the cube-board and he also plays first.
 His symbol is a Cross.
+
+![Screenshot 2022-08-11 at 20 37 25](https://user-images.githubusercontent.com/44325210/184224818-a396d90a-31f2-4795-aec1-979c74f55399.png)
+
 
 Join player will connect to the host player's game. 
 To do that you need to enter the IP address of the Host player. 
 The IP address must be in IPv4 format.
 Join player is playing second and his symbol is a Nought.
 
+![Screenshot 2022-08-11 at 20 35 47](https://user-images.githubusercontent.com/44325210/184224616-8a52db91-61ca-442b-b4fa-871b89b7e89b.png)
+
 ### Playing
+
+![piskworks-2](https://user-images.githubusercontent.com/44325210/184224888-447c31aa-44c2-47f4-8256-f7b0be077e7f.png)
 
 After successfully connecting with your opponent, the playing screen will be displayed.
 In the top part of the screen there is the cube-board sliced by levels,
