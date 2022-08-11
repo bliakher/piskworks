@@ -59,4 +59,4 @@ doxygen Doxyfile
 
 ## Acknowledgment
 
-I would like to thank Jan Kytka - [Muph0](https://github.com/Muph0) - for providing the font used in this game.
+I would like to thank [Jan Kytka (Muph0)](https://github.com/Muph0) - for providing the font used in this game.
